@@ -39,7 +39,7 @@ function getLoggerConfig(logLevel: string) {
 }
 
 const schema = Type.Object({
-  PORT: Type.Number({ default: 3000 }),
+  PORT: Type.Number({ default: 5000 }),
   HOST: Type.String({ default: '0.0.0.0' }),
   POSTGRES_URL: Type.String(),
   LOG_LEVEL: Type.Union(
