@@ -1,6 +1,11 @@
 import type { User } from '../../db/schema.ts'
+import { buildCategoriesFlexMessage } from '../../utils/category-flex-message.ts'
 import { definePlugin } from '../../utils/factories.ts'
-import { ReplyTextMessage, type TextMessageEvent } from '../../utils/line-helper.ts'
+import {
+  ReplyFlexMessage,
+  ReplyTextMessage,
+  type TextMessageEvent,
+} from '../../utils/line-helper.ts'
 
 declare module 'fastify' {
   interface FastifyInstance {
@@ -17,17 +22,21 @@ export type LineCommandHandler = (
 const plugin = definePlugin(
   {
     name: 'line-command-handler',
-    dependencies: ['line', 'invite-code-repository'],
+    dependencies: ['line', 'invite-code-repository', 'category-repository'],
   },
   async (app) => {
     const commands: Record<string, LineCommandHandler> = {
       '/help': handleHelp,
       '/join': handleJoin,
+      '/categories': handleCategories,
+      '/category': handleCategories,
     }
 
     async function handleHelp(_user: User, event: TextMessageEvent, _args: string[]) {
       const reply = new ReplyTextMessage(app, event.replyToken)
-      await reply.execute('คำสั่งที่ใช้ได้:\n/help ดูคำสั่งทั้งหมด\n/join <code> ใช้โค้ดเชิญเพื่อเข้าร่วม')
+      await reply.execute(
+        'คำสั่งที่ใช้ได้:\n/help ดูคำสั่งทั้งหมด\n/join <code> ใช้โค้ดเชิญเพื่อเข้าร่วม\n/categories ดูหมวดหมู่ทั้งหมด',
+      )
     }
 
     async function handleJoin(user: User, event: TextMessageEvent, args: string[]) {
@@ -73,6 +82,19 @@ const plugin = definePlugin(
       }
 
       await reply.execute('เข้าร่วมเรียบร้อยแล้ว ยินดีต้อนรับ')
+    }
+
+    async function handleCategories(user: User, event: TextMessageEvent, _args: string[]) {
+      const categories = await app.categoryRepository.findByUserId(user.id)
+
+      if (categories.length === 0) {
+        const reply = new ReplyTextMessage(app, event.replyToken)
+        await reply.execute('ยังไม่มีหมวดหมู่ในบัญชีของคุณ')
+        return
+      }
+
+      const reply = new ReplyFlexMessage(app, event.replyToken)
+      await reply.execute(buildCategoriesFlexMessage(categories))
     }
 
     async function handleUnknown(_user: User, event: TextMessageEvent, args: string[]) {

@@ -1,3 +1,4 @@
+import type { messagingApi } from '@line/bot-sdk'
 import type { FastifyInstance } from 'fastify'
 import type { webhook } from 'fastify-line'
 
@@ -23,6 +24,23 @@ export class ReplyTextMessage {
         type: 'text',
         text: message,
       })),
+    })
+  }
+}
+
+export class ReplyFlexMessage {
+  #app: FastifyInstance
+  #replyToken: string
+
+  constructor(app: FastifyInstance, replyToken: string) {
+    this.#app = app
+    this.#replyToken = replyToken
+  }
+
+  async execute(message: messagingApi.FlexMessage) {
+    await this.#app.line.client.replyMessage({
+      replyToken: this.#replyToken,
+      messages: [message],
     })
   }
 }

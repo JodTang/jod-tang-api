@@ -1,0 +1,57 @@
+import { db } from '../../db/index.ts'
+import type { Category } from '../../db/schema.ts'
+import { definePlugin } from '../../utils/factories.ts'
+
+declare module 'fastify' {
+  interface FastifyInstance {
+    categoryRepository: CategoryRepository
+  }
+}
+
+export class CategoryRepository {
+  async findByUserId(userId: string) {
+    const categories = await db.query.categoriesTable.findMany({
+      where: { userId },
+    })
+
+    return categories.sort(sortCategories)
+  }
+}
+
+function getCategoryTypeOrder(category: Category) {
+  switch (category.type) {
+    case 'expense':
+      return 0
+    case 'income':
+      return 1
+    case 'both':
+      return 2
+    default:
+      return 99
+  }
+}
+
+function sortCategories(a: Category, b: Category) {
+  const typeDiff = getCategoryTypeOrder(a) - getCategoryTypeOrder(b)
+  if (typeDiff !== 0) {
+    return typeDiff
+  }
+
+  if (a.isDefault !== b.isDefault) {
+    return Number(b.isDefault) - Number(a.isDefault)
+  }
+
+  return a.name.localeCompare(b.name, 'th')
+}
+
+const plugin = definePlugin(
+  {
+    name: 'category-repository',
+    dependencies: ['db'],
+  },
+  async (app) => {
+    app.decorate('categoryRepository', new CategoryRepository())
+  },
+)
+
+export default plugin
