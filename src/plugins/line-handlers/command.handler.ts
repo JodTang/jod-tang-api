@@ -64,7 +64,14 @@ const plugin = definePlugin(
         return
       }
 
-      await app.inviteCodeRepository.incrementUsedCountAndUpdateUser(code, user.id)
+      try {
+        await app.inviteCodeRepository.incrementUsedCountAndUpdateUser(code, user.id)
+      } catch (err) {
+        app.log.error({ err }, 'Failed to increment invite code count')
+        await reply.execute('เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง')
+        return
+      }
+
       await reply.execute('เข้าร่วมเรียบร้อยแล้ว ยินดีต้อนรับ')
     }
 

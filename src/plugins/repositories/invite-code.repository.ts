@@ -1,6 +1,7 @@
 import { eq, gt, sql } from 'drizzle-orm'
+import { buildDefaultCategoriesForUser } from '../../db/default-categories.ts'
 import { db } from '../../db/index.ts'
-import { inviteCodesTable, type NewInviteCode, usersTable } from '../../db/schema.ts'
+import { categoriesTable, inviteCodesTable, type NewInviteCode, usersTable } from '../../db/schema.ts'
 import { definePlugin } from '../../utils/factories.ts'
 
 declare module 'fastify' {
@@ -36,6 +37,22 @@ export class InviteCodeRepository {
           activatedAt: new Date(),
         })
         .where(eq(usersTable.id, userId))
+
+      const existingCategories = await tx.query.categoriesTable.findMany({
+        where: { userId },
+      })
+
+      const existingCategoryKeys = new Set(
+        existingCategories.map((category) => `${category.type}:${category.name}`),
+      )
+
+      const missingDefaultCategories = buildDefaultCategoriesForUser(userId).filter(
+        (category) => !existingCategoryKeys.has(`${category.type}:${category.name}`),
+      )
+
+      if (missingDefaultCategories.length > 0) {
+        await tx.insert(categoriesTable).values(missingDefaultCategories)
+      }
     })
   }
 }
