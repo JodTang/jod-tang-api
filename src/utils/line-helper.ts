@@ -7,6 +7,28 @@ export interface TextMessageEvent extends webhook.MessageEvent {
   replyToken: string
 }
 
+export interface PostbackEvent extends webhook.PostbackEvent {
+  replyToken: string
+}
+
+export class ReplyMessage {
+  #app: FastifyInstance
+  #replyToken: string
+
+  constructor(app: FastifyInstance, replyToken: string) {
+    this.#app = app
+    this.#replyToken = replyToken
+  }
+
+  async execute(messages: messagingApi.Message | messagingApi.Message[]) {
+    const messageArray = Array.isArray(messages) ? messages : [messages]
+    await this.#app.line.client.replyMessage({
+      replyToken: this.#replyToken,
+      messages: messageArray,
+    })
+  }
+}
+
 export class ReplyTextMessage {
   #app: FastifyInstance
   #replyToken: string
@@ -18,13 +40,13 @@ export class ReplyTextMessage {
 
   async execute(messages: string | string[]) {
     const messageArray = Array.isArray(messages) ? messages : [messages]
-    await this.#app.line.client.replyMessage({
-      replyToken: this.#replyToken,
-      messages: messageArray.map((message) => ({
+    const reply = new ReplyMessage(this.#app, this.#replyToken)
+    await reply.execute(
+      messageArray.map((message) => ({
         type: 'text',
         text: message,
       })),
-    })
+    )
   }
 }
 

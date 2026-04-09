@@ -1,5 +1,5 @@
 import { db } from '../../db/index.ts'
-import type { Category } from '../../db/schema.ts'
+import type { Category, TransactionType } from '../../db/schema.ts'
 import { definePlugin } from '../../utils/factories.ts'
 
 declare module 'fastify' {
@@ -15,6 +15,19 @@ export class CategoryRepository {
     })
 
     return categories.sort(sortCategories)
+  }
+
+  async findByIdAndUserId(id: string, userId: string) {
+    return db.query.categoriesTable.findFirst({
+      where: { id, userId },
+    })
+  }
+
+  async findByUserIdAndTransactionType(userId: string, transactionType: TransactionType) {
+    const categories = await this.findByUserId(userId)
+    return categories.filter(
+      (category) => category.type === transactionType || category.type === 'both',
+    )
   }
 }
 

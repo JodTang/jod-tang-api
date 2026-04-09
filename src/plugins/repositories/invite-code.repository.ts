@@ -1,7 +1,12 @@
 import { eq, gt, sql } from 'drizzle-orm'
 import { buildDefaultCategoriesForUser } from '../../db/default-categories.ts'
 import { db } from '../../db/index.ts'
-import { categoriesTable, inviteCodesTable, type NewInviteCode, usersTable } from '../../db/schema.ts'
+import {
+  categoriesTable,
+  inviteCodesTable,
+  type NewInviteCode,
+  usersTable,
+} from '../../db/schema.ts'
 import { definePlugin } from '../../utils/factories.ts'
 
 declare module 'fastify' {

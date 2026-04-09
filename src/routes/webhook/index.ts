@@ -1,6 +1,11 @@
 import type { webhook } from 'fastify-line'
 import type { TypedRoutePlugin } from '../../utils/factories.ts'
-import { isCommand, ReplyTextMessage, type TextMessageEvent } from '../../utils/line-helper.ts'
+import {
+  isCommand,
+  type PostbackEvent,
+  ReplyTextMessage,
+  type TextMessageEvent,
+} from '../../utils/line-helper.ts'
 
 const route: TypedRoutePlugin = async (app) => {
   const { userRepository, line } = app
@@ -21,6 +26,10 @@ const route: TypedRoutePlugin = async (app) => {
 
   function isTextMessageEvent(event: webhook.Event): event is TextMessageEvent {
     return event.type === 'message' && event.message.type === 'text'
+  }
+
+  function isPostbackEvent(event: webhook.Event): event is PostbackEvent {
+    return event.type === 'postback' && Boolean(event.replyToken)
   }
 
   function isAllowedUserNotActive(event: webhook.Event) {
@@ -100,7 +109,8 @@ const route: TypedRoutePlugin = async (app) => {
           }
           break
         case 'postback':
-          // Handle postback events
+          if (!isPostbackEvent(event)) return
+          await app.postbackHandler(user, event)
           break
         default:
           app.log.warn({ event }, 'Unhandled LINE webhook event')

@@ -1,6 +1,11 @@
 import type { TransactionType, User } from '../../db/schema.ts'
 import { definePlugin } from '../../utils/factories.ts'
-import { ReplyTextMessage, type TextMessageEvent } from '../../utils/line-helper.ts'
+import {
+  ReplyFlexMessage,
+  ReplyTextMessage,
+  type TextMessageEvent,
+} from '../../utils/line-helper.ts'
+import { buildTransactionCategoryFlexMessage } from '../../utils/transaction-category-postback.ts'
 
 declare module 'fastify' {
   interface FastifyInstance {
@@ -90,7 +95,7 @@ function parseBankTransactionMessage(text: string): ParsedBankTransaction | null
 const plugin = definePlugin(
   {
     name: 'line-text-message-handler',
-    dependencies: ['line', 'transaction-repository'],
+    dependencies: ['category-repository', 'line', 'transaction-repository'],
   },
   async (app) => {
     async function handleTextMessage(user: User, event: TextMessageEvent, text: string) {
@@ -104,8 +109,14 @@ const plugin = definePlugin(
         return
       }
 
+      const transactionLabel = parsedTransaction.type === 'expense' ? 'รายจ่าย' : 'รายรับ'
+
       try {
-        await app.transactionRepository.create({
+        const categories = await app.categoryRepository.findByUserIdAndTransactionType(
+          user.id,
+          parsedTransaction.type,
+        )
+        const transaction = await app.transactionRepository.create({
           userId: user.id,
           type: parsedTransaction.type,
           amount: parsedTransaction.amount,
@@ -113,19 +124,24 @@ const plugin = definePlugin(
           transactedAt: parsedTransaction.transactedAt,
           source: 'line',
         })
+
+        if (categories.length === 0) {
+          await reply.execute(
+            `บันทึก${transactionLabel} ${Number(parsedTransaction.amount).toLocaleString('en-US', {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            })} บาท เรียบร้อยแล้ว`,
+          )
+          return
+        }
+
+        const replyFlex = new ReplyFlexMessage(app, event.replyToken)
+        await replyFlex.execute(buildTransactionCategoryFlexMessage(transaction, categories))
       } catch (err) {
         app.log.error({ err, text, userId: user.id }, 'Failed to create transaction from text')
         await reply.execute('บันทึกรายการไม่สำเร็จ กรุณาลองใหม่อีกครั้ง')
         return
       }
-
-      const transactionLabel = parsedTransaction.type === 'expense' ? 'รายจ่าย' : 'รายรับ'
-      await reply.execute(
-        `บันทึก${transactionLabel} ${Number(parsedTransaction.amount).toLocaleString('en-US', {
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2,
-        })} บาท เรียบร้อยแล้ว`,
-      )
     }
 
     app.decorate('textMessageHandler', handleTextMessage)
