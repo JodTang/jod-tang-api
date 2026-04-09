@@ -74,7 +74,9 @@ const route: TypedRoutePlugin = async (app) => {
       if (!isAllowedUserNotActive(event) && user.status !== 'active') {
         if ('replyToken' in event && event.replyToken) {
           const reply = new ReplyTextMessage(app, event.replyToken)
-          await reply.execute('คุณยังไม่ได้รับอนุญาตให้ใช้งานบอท')
+          await reply.execute(
+            'บัญชีของคุณยังไม่ได้รับสิทธิ์ใช้งานบอท หากมีโค้ดเชิญ สามารถพิมพ์ /join <code> เพื่อเข้าร่วมได้',
+          )
         }
         return
       }
