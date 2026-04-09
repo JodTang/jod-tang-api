@@ -12,6 +12,7 @@
     "start": "npm run build && node --env-file=.env dist/index.js",
     "lint": "biome check",
     "lint:fix": "biome check --write",
+    "line:create-rich-menu": "node --env-file=.env src/scripts/create-rich-menu.ts",
     "db:migrate": "drizzle-kit generate",
     "db:push": "drizzle-kit push",
     "db:pull": "drizzle-kit pull",

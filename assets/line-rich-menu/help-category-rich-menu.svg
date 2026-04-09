@@ -1,0 +1,168 @@
+<svg width="2500" height="1686" viewBox="0 0 2500 1686" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="1250" y1="0" x2="1250" y2="1686" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#8EDCFF"/>
+      <stop offset="0.55" stop-color="#52B6F4"/>
+      <stop offset="1" stop-color="#238FDD"/>
+    </linearGradient>
+    <linearGradient id="haze" x1="520" y1="180" x2="2100" y2="520" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#E4F7FF" stop-opacity="0.5"/>
+      <stop offset="1" stop-color="#E4F7FF" stop-opacity="0.04"/>
+    </linearGradient>
+    <linearGradient id="panelLeft" x1="0" y1="0" x2="0" y2="1">
+      <stop stop-color="#FFF7D9"/>
+      <stop offset="1" stop-color="#FFE28E"/>
+    </linearGradient>
+    <linearGradient id="panelRight" x1="0" y1="0" x2="0" y2="1">
+      <stop stop-color="#E8FFD7"/>
+      <stop offset="1" stop-color="#BDF06D"/>
+    </linearGradient>
+    <linearGradient id="coin" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#FFF2AE"/>
+      <stop offset="1" stop-color="#FFB200"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="160%">
+      <feDropShadow dx="0" dy="18" stdDeviation="18" flood-color="#066CB4" flood-opacity="0.24"/>
+    </filter>
+    <filter id="softShadow" x="-20%" y="-20%" width="140%" height="160%">
+      <feDropShadow dx="0" dy="12" stdDeviation="12" flood-color="#0D5F9A" flood-opacity="0.18"/>
+    </filter>
+  </defs>
+
+  <rect width="2500" height="1686" fill="url(#bg)"/>
+  <ellipse cx="1490" cy="190" rx="980" ry="250" fill="url(#haze)"/>
+  <ellipse cx="1280" cy="1520" rx="1220" ry="290" fill="#137ECA" opacity="0.22"/>
+  <ellipse cx="1260" cy="1464" rx="900" ry="200" fill="#46BEFF" opacity="0.2"/>
+
+  <g fill="#FFF" opacity="0.92">
+    <path d="M170 194C170 150 206 114 250 114C274 114 296 124 311 141C325 127 346 118 369 118C412 118 448 154 448 197C448 240 412 276 369 276H250C206 276 170 240 170 197V194Z"/>
+    <path d="M1988 174C1988 131 2024 95 2067 95C2094 95 2118 106 2133 124C2152 103 2178 91 2206 91C2266 91 2315 140 2315 200C2315 260 2266 309 2206 309H2067C2024 309 1988 273 1988 230V174Z"/>
+    <path d="M474 100C474 74 496 52 522 52C540 52 555 59 564 70C573 60 587 54 601 54C631 54 655 78 655 108C655 138 631 162 601 162H522C496 162 474 140 474 114V100Z" opacity="0.82"/>
+    <path d="M1710 110C1710 84 1731 63 1757 63C1775 63 1790 70 1799 81C1808 71 1822 65 1837 65C1866 65 1890 89 1890 118C1890 148 1866 172 1837 172H1757C1731 172 1710 151 1710 125V110Z" opacity="0.82"/>
+    <path d="M90 372C90 348 109 329 133 329C146 329 159 335 166 344C174 336 186 332 198 332C223 332 243 352 243 377C243 401 223 421 198 421H133C109 421 90 402 90 378V372Z" opacity="0.78"/>
+    <path d="M2280 355C2280 331 2299 312 2323 312C2337 312 2349 317 2357 326C2365 319 2377 315 2390 315C2415 315 2436 336 2436 361C2436 386 2415 406 2390 406H2323C2299 406 2280 387 2280 363V355Z" opacity="0.78"/>
+  </g>
+
+  <g opacity="0.95">
+    <path d="M562 222L579 258L618 262L589 286L597 324L562 305L528 324L536 286L507 262L545 258L562 222Z" fill="#FFF5A8"/>
+    <path d="M1867 245L1883 280L1922 284L1893 308L1901 346L1867 327L1833 346L1841 308L1812 284L1850 280L1867 245Z" fill="#FFF5A8"/>
+    <path d="M690 145L700 168L726 171L707 188L712 214L690 202L668 214L673 188L654 171L680 168L690 145Z" fill="#F8FEFF"/>
+    <path d="M1572 164L1582 187L1608 190L1589 207L1594 233L1572 221L1550 233L1555 207L1536 190L1562 187L1572 164Z" fill="#F8FEFF"/>
+    <path d="M2112 460L2122 483L2148 486L2129 503L2134 529L2112 517L2090 529L2095 503L2076 486L2102 483L2112 460Z" fill="#F8FEFF"/>
+  </g>
+
+  <g transform="translate(170 360)" filter="url(#shadow)">
+    <ellipse cx="360" cy="468" rx="310" ry="84" fill="#0B77C0" opacity="0.2"/>
+    <rect x="120" y="68" width="360" height="455" rx="56" fill="#FFF8EC" stroke="#4D2A1E" stroke-width="16"/>
+    <path d="M150 112H447" stroke="#FFD9D4" stroke-width="8" stroke-linecap="round"/>
+    <path d="M150 176H447" stroke="#FFD9D4" stroke-width="8" stroke-linecap="round"/>
+    <circle cx="178" cy="40" r="24" fill="#FFF8EC" stroke="#4D2A1E" stroke-width="12"/>
+    <circle cx="250" cy="40" r="24" fill="#FFF8EC" stroke="#4D2A1E" stroke-width="12"/>
+    <circle cx="322" cy="40" r="24" fill="#FFF8EC" stroke="#4D2A1E" stroke-width="12"/>
+    <circle cx="394" cy="40" r="24" fill="#FFF8EC" stroke="#4D2A1E" stroke-width="12"/>
+    <circle cx="232" cy="264" r="24" fill="#35261F"/>
+    <circle cx="365" cy="264" r="24" fill="#35261F"/>
+    <circle cx="224" cy="256" r="7" fill="#FFF"/>
+    <circle cx="357" cy="256" r="7" fill="#FFF"/>
+    <path d="M232 370C252 404 301 423 350 370" stroke="#35261F" stroke-width="18" stroke-linecap="round"/>
+    <circle cx="165" cy="336" r="18" fill="#FFA993"/>
+    <circle cx="431" cy="336" r="18" fill="#FFA993"/>
+    <path d="M71 286C71 242 107 206 151 206H165V417H144C103 417 71 384 71 343V286Z" fill="#FFF8EC" stroke="#4D2A1E" stroke-width="16"/>
+    <path d="M435 286C435 242 471 206 515 206H529V417H508C467 417 435 384 435 343V286Z" fill="#FFF8EC" stroke="#4D2A1E" stroke-width="16"/>
+    <g transform="translate(0 220) rotate(-18 55 110)">
+      <rect x="0" y="0" width="110" height="250" rx="24" fill="#70D620" stroke="#4D2A1E" stroke-width="14"/>
+      <rect x="0" y="0" width="110" height="48" rx="20" fill="#FFD457" stroke="#4D2A1E" stroke-width="14"/>
+      <rect x="0" y="48" width="110" height="30" fill="#FF8A2B"/>
+      <path d="M88 250L55 203L22 250H88Z" fill="#F6C36A" stroke="#4D2A1E" stroke-width="14" stroke-linejoin="round"/>
+    </g>
+  </g>
+
+  <g transform="translate(1712 432)" filter="url(#softShadow)">
+    <ellipse cx="258" cy="320" rx="280" ry="70" fill="#0C73BC" opacity="0.18"/>
+    <g transform="translate(195 72)">
+      <ellipse cx="142" cy="182" rx="142" ry="118" fill="#FFA8C0" stroke="#7B2F47" stroke-width="16"/>
+      <circle cx="70" cy="78" r="33" fill="#FFA8C0" stroke="#7B2F47" stroke-width="14"/>
+      <circle cx="200" cy="78" r="33" fill="#FFA8C0" stroke="#7B2F47" stroke-width="14"/>
+      <circle cx="120" cy="192" r="16" fill="#2F1C20"/>
+      <circle cx="182" cy="192" r="16" fill="#2F1C20"/>
+      <circle cx="92" cy="230" r="12" fill="#FF9B8C"/>
+      <circle cx="210" cy="230" r="12" fill="#FF9B8C"/>
+      <path d="M143 192C153 208 168 218 185 221" stroke="#2F1C20" stroke-width="12" stroke-linecap="round"/>
+      <circle cx="274" cy="260" r="34" fill="#FFA8C0" stroke="#7B2F47" stroke-width="14"/>
+    </g>
+    <g transform="translate(0 0)">
+      <rect x="0" y="0" width="234" height="272" rx="28" fill="#FFF6EA" stroke="#4E311F" stroke-width="16"/>
+      <rect x="22" y="22" width="190" height="64" rx="16" fill="#26495D"/>
+      <text x="117" y="66" text-anchor="middle" font-size="30" font-weight="700" font-family="Helvetica, Arial, sans-serif" fill="#E8F8FF">1 2 3 4</text>
+      <rect x="24" y="108" width="56" height="40" rx="10" fill="#FFF"/>
+      <rect x="89" y="108" width="56" height="40" rx="10" fill="#FFF"/>
+      <rect x="154" y="108" width="56" height="40" rx="10" fill="#FFBC4A"/>
+      <rect x="24" y="158" width="56" height="40" rx="10" fill="#FFF"/>
+      <rect x="89" y="158" width="56" height="40" rx="10" fill="#FFF"/>
+      <rect x="154" y="158" width="56" height="40" rx="10" fill="#2DA0FF"/>
+      <rect x="24" y="208" width="56" height="40" rx="10" fill="#FFF"/>
+      <rect x="89" y="208" width="56" height="40" rx="10" fill="#FFF"/>
+      <rect x="154" y="208" width="56" height="40" rx="10" fill="#FF9E2C"/>
+      <text x="52" y="136" text-anchor="middle" font-size="28" font-weight="700" font-family="Helvetica, Arial, sans-serif" fill="#6B5240">7</text>
+      <text x="117" y="136" text-anchor="middle" font-size="28" font-weight="700" font-family="Helvetica, Arial, sans-serif" fill="#6B5240">8</text>
+      <text x="182" y="136" text-anchor="middle" font-size="28" font-weight="700" font-family="Helvetica, Arial, sans-serif" fill="#6B5240">+</text>
+      <text x="52" y="186" text-anchor="middle" font-size="28" font-weight="700" font-family="Helvetica, Arial, sans-serif" fill="#6B5240">4</text>
+      <text x="117" y="186" text-anchor="middle" font-size="28" font-weight="700" font-family="Helvetica, Arial, sans-serif" fill="#6B5240">5</text>
+      <text x="182" y="186" text-anchor="middle" font-size="28" font-weight="700" font-family="Helvetica, Arial, sans-serif" fill="#FFF">-</text>
+      <text x="52" y="236" text-anchor="middle" font-size="28" font-weight="700" font-family="Helvetica, Arial, sans-serif" fill="#6B5240">1</text>
+      <text x="117" y="236" text-anchor="middle" font-size="28" font-weight="700" font-family="Helvetica, Arial, sans-serif" fill="#6B5240">2</text>
+      <text x="182" y="236" text-anchor="middle" font-size="28" font-weight="700" font-family="Helvetica, Arial, sans-serif" fill="#FFF">=</text>
+    </g>
+  </g>
+
+  <g transform="translate(1030 620)" filter="url(#softShadow)">
+    <ellipse cx="220" cy="174" rx="250" ry="60" fill="#0D75BE" opacity="0.18"/>
+    <g transform="translate(0 30)">
+      <rect x="30" y="66" width="220" height="128" rx="18" fill="#62D64C" stroke="#216A19" stroke-width="14"/>
+      <rect x="0" y="98" width="220" height="128" rx="18" fill="#7BE35A" stroke="#216A19" stroke-width="14"/>
+      <rect x="64" y="126" width="54" height="28" rx="9" fill="#A4F27F"/>
+      <rect x="128" y="126" width="54" height="28" rx="9" fill="#A4F27F"/>
+      <rect x="182" y="110" width="54" height="28" rx="9" fill="#FFED92"/>
+    </g>
+    <g transform="translate(136 0)">
+      <circle cx="94" cy="108" r="76" fill="url(#coin)" stroke="#B26500" stroke-width="14"/>
+      <circle cx="170" cy="164" r="68" fill="url(#coin)" stroke="#B26500" stroke-width="14"/>
+      <text x="94" y="132" text-anchor="middle" font-size="58" font-weight="800" font-family="Helvetica, Arial, sans-serif" fill="#FFF6D2">฿</text>
+      <text x="170" y="187" text-anchor="middle" font-size="58" font-weight="800" font-family="Helvetica, Arial, sans-serif" fill="#FFF6D2">฿</text>
+    </g>
+  </g>
+
+  <g transform="translate(662 120)" filter="url(#shadow)">
+    <text x="590" y="186" text-anchor="middle" font-size="212" font-weight="900" font-family="Arial Rounded MT Bold, Helvetica, Arial, sans-serif" fill="#FFF" stroke="#17496C" stroke-width="28" paint-order="stroke fill">JodTang</text>
+    <text x="590" y="186" text-anchor="middle" font-size="212" font-weight="900" font-family="Arial Rounded MT Bold, Helvetica, Arial, sans-serif" fill="#18B7FF">JodTang</text>
+    <text x="590" y="304" text-anchor="middle" font-size="66" font-weight="800" font-family="Helvetica, Arial, sans-serif" fill="#FDFCF7">Expense tracking made easy</text>
+    <text x="590" y="378" text-anchor="middle" font-size="48" font-weight="700" font-family="Helvetica, Arial, sans-serif" fill="#E9FAFF">on LINE</text>
+  </g>
+
+  <g transform="translate(104 1090)" filter="url(#shadow)">
+    <rect x="0" y="0" width="1102" height="500" rx="60" fill="url(#panelLeft)" stroke="#FFFFFF" stroke-width="18"/>
+    <rect x="34" y="34" width="1034" height="432" rx="44" fill="#FFFFFF" opacity="0.22"/>
+    <g transform="translate(90 130)">
+      <circle cx="100" cy="100" r="84" fill="#FFB742" stroke="#994E00" stroke-width="14"/>
+      <path d="M74 100C74 78 92 60 115 60C138 60 156 78 156 100C156 123 138 141 115 141H103L81 163V140C77 140 74 137 74 133V100Z" fill="#FFF6D7"/>
+      <text x="115" y="120" text-anchor="middle" font-size="64" font-weight="800" font-family="Helvetica, Arial, sans-serif" fill="#E98A00">?</text>
+    </g>
+    <text x="320" y="182" font-size="118" font-weight="900" font-family="Arial Rounded MT Bold, Helvetica, Arial, sans-serif" fill="#8F4B06">Help</text>
+    <text x="320" y="282" font-size="64" font-weight="800" font-family="Helvetica, Arial, sans-serif" fill="#845422">Guide and commands</text>
+    <text x="320" y="370" font-size="56" font-weight="700" font-family="Helvetica, Arial, sans-serif" fill="#A56F2A">Tap to send /help</text>
+  </g>
+
+  <g transform="translate(1294 1090)" filter="url(#shadow)">
+    <rect x="0" y="0" width="1102" height="500" rx="60" fill="url(#panelRight)" stroke="#FFFFFF" stroke-width="18"/>
+    <rect x="34" y="34" width="1034" height="432" rx="44" fill="#FFFFFF" opacity="0.18"/>
+    <g transform="translate(98 126)">
+      <rect x="0" y="28" width="162" height="134" rx="26" fill="#47BF4F" stroke="#155B27" stroke-width="14"/>
+      <path d="M22 54H78L101 28H162V78H22V54Z" fill="#90EA72" stroke="#155B27" stroke-width="14" stroke-linejoin="round"/>
+      <circle cx="138" cy="148" r="42" fill="url(#coin)" stroke="#B26500" stroke-width="10"/>
+      <text x="138" y="164" text-anchor="middle" font-size="40" font-weight="800" font-family="Helvetica, Arial, sans-serif" fill="#FFF9DF">฿</text>
+    </g>
+    <text x="320" y="182" font-size="112" font-weight="900" font-family="Arial Rounded MT Bold, Helvetica, Arial, sans-serif" fill="#1E7B1D">Category</text>
+    <text x="320" y="282" font-size="64" font-weight="800" font-family="Helvetica, Arial, sans-serif" fill="#2E6E30">View all categories</text>
+    <text x="320" y="370" font-size="56" font-weight="700" font-family="Helvetica, Arial, sans-serif" fill="#347B37">Tap to send /category</text>
+  </g>
+</svg>
