@@ -94,6 +94,7 @@ export const transactionsTable = pgTable(
     type: transactionTypeEnum('type').notNull(),
     amount: decimal('amount', { precision: 12, scale: 2 }).notNull(),
     note: text('note'),
+    sourceText: text('source_text'),
     transactedAt: date('transacted_at').notNull(),
     source: transactionSourceEnum('source'),
     createdAt: msTimestamp('created_at').notNull().defaultNow(),
