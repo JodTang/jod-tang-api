@@ -19,6 +19,7 @@ export interface IConfig {
   frontendUrl: string
   enableDbConnection?: boolean // default: true
   line: {
+    channelId: string
     accessToken: string
     secret: string
     endpoint: string
@@ -62,6 +63,7 @@ const schema = Type.Object({
   ENABLE_COOKIE_SECURE: Type.Boolean({ default: true }),
   FRONTEND_URL: Type.String({ default: 'http://localhost:3001' }),
   ENABLE_DB_CONNECTION: Type.Boolean({ default: true }),
+  LINE_CHANNEL_ID: Type.String(),
   LINE_CHANNEL_SECRET: Type.String(),
   LINE_CHANNEL_ACCESS_TOKEN: Type.String(),
   LINE_ENDPOINT: Type.String({ default: 'https://api.line.me' }),
@@ -130,6 +132,7 @@ function getConfig() {
     frontendUrl: env.FRONTEND_URL,
     enableDbConnection: env.ENABLE_DB_CONNECTION,
     line: {
+      channelId: env.LINE_CHANNEL_ID,
       accessToken: env.LINE_CHANNEL_ACCESS_TOKEN,
       secret: env.LINE_CHANNEL_SECRET,
       endpoint: env.LINE_ENDPOINT,
