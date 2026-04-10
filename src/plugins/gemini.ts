@@ -48,6 +48,14 @@ export class GeminiService {
     options: GeminiGenerateTextOptions = {},
   ): Promise<GeminiGenerateTextResult> {
     const { client, model } = await this.#getClientAndModel(options.model)
+    this.#logRequest({
+      kind: 'text',
+      model,
+      prompt,
+      systemInstruction: options.systemInstruction,
+      maxOutputTokens: options.maxOutputTokens,
+    })
+
     const response = await client.models.generateContent({
       model,
       contents: prompt,
@@ -65,11 +73,26 @@ export class GeminiService {
       throw this.#app.httpErrors.badGateway('Gemini returned an empty text response')
     }
 
+    this.#logResponse({
+      kind: 'text',
+      model,
+      text,
+    })
+
     return { model, text }
   }
 
   async generateJson<T>(prompt: string, options: GeminiGenerateJsonOptions): Promise<T> {
     const { client, model } = await this.#getClientAndModel(options.model)
+    this.#logRequest({
+      kind: 'json',
+      model,
+      prompt,
+      systemInstruction: options.systemInstruction,
+      maxOutputTokens: options.maxOutputTokens,
+      responseJsonSchema: options.responseJsonSchema,
+    })
+
     const response = await client.models.generateContent({
       model,
       contents: prompt,
@@ -88,6 +111,12 @@ export class GeminiService {
     if (!text) {
       throw this.#app.httpErrors.badGateway('Gemini returned an empty JSON response')
     }
+
+    this.#logResponse({
+      kind: 'json',
+      model,
+      text,
+    })
 
     try {
       return JSON.parse(text) as T
@@ -113,6 +142,53 @@ export class GeminiService {
     const setting = await this.#app.appSettingsRepository.getGeminiModel()
     return setting?.value || this.#defaultModel
   }
+
+  #logRequest(payload: {
+    kind: 'json' | 'text'
+    model: string
+    prompt: string
+    systemInstruction?: string
+    maxOutputTokens?: number
+    responseJsonSchema?: unknown
+  }) {
+    const schemaText =
+      payload.responseJsonSchema === undefined ? '' : JSON.stringify(payload.responseJsonSchema)
+
+    this.#app.log.info(
+      {
+        kind: payload.kind,
+        model: payload.model,
+        promptChars: payload.prompt.length,
+        promptApproxTokens: estimateTokenCount(payload.prompt),
+        systemInstructionChars: payload.systemInstruction?.length || 0,
+        systemInstructionApproxTokens: estimateTokenCount(payload.systemInstruction || ''),
+        responseSchemaChars: schemaText.length,
+        responseSchemaApproxTokens: estimateTokenCount(schemaText),
+        maxOutputTokens: payload.maxOutputTokens || null,
+      },
+      'Gemini request',
+    )
+  }
+
+  #logResponse(payload: { kind: 'json' | 'text'; model: string; text: string }) {
+    this.#app.log.info(
+      {
+        kind: payload.kind,
+        model: payload.model,
+        responseChars: payload.text.length,
+        responseApproxTokens: estimateTokenCount(payload.text),
+      },
+      'Gemini response',
+    )
+  }
+}
+
+function estimateTokenCount(text: string) {
+  if (!text) {
+    return 0
+  }
+
+  return Math.ceil(text.length / 4)
 }
 
 const plugin = definePlugin(
