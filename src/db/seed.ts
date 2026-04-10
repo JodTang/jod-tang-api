@@ -1,7 +1,8 @@
+import { eq } from 'drizzle-orm'
 import type { FastifyInstance } from 'fastify'
 import type { IConfig } from '../config/index.ts'
 import { db } from './index.ts'
-import { appSettingsTable, inviteCodesTable } from './schema.ts'
+import { appSettingsTable, inviteCodesTable, usersTable } from './schema.ts'
 
 export async function seed(app: FastifyInstance, config: IConfig) {
   app.log.info('Seeding database...')
@@ -33,6 +34,44 @@ export async function seed(app: FastifyInstance, config: IConfig) {
       value: config.gemini.model,
     })
     app.log.info('Default Gemini model setting created')
+  }
+
+  const existingOwner = await db.query.usersTable.findFirst({
+    where: { role: 'owner' },
+  })
+  if (!existingOwner && config.bootstrapOwnerLineUserId) {
+    const bootstrapOwner = await db.query.usersTable.findFirst({
+      where: { lineUserId: config.bootstrapOwnerLineUserId },
+    })
+
+    if (bootstrapOwner) {
+      await db
+        .update(usersTable)
+        .set({
+          role: 'owner',
+          status: 'active',
+          activatedAt: bootstrapOwner.activatedAt || new Date(),
+        })
+        .where(eq(usersTable.id, bootstrapOwner.id))
+
+      app.log.info(
+        { lineUserId: config.bootstrapOwnerLineUserId },
+        'Bootstrap owner promoted from existing user',
+      )
+    } else {
+      await db.insert(usersTable).values({
+        lineUserId: config.bootstrapOwnerLineUserId,
+        displayName: 'Owner',
+        status: 'active',
+        role: 'owner',
+        activatedAt: new Date(),
+      })
+
+      app.log.info(
+        { lineUserId: config.bootstrapOwnerLineUserId },
+        'Bootstrap owner created from config',
+      )
+    }
   }
 
   app.log.info('Database seeding completed')

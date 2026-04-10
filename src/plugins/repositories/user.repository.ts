@@ -26,8 +26,18 @@ export class UserRepository {
     })
   }
 
+  async findFirstOwner() {
+    return db.query.usersTable.findFirst({
+      where: { role: 'owner' },
+    })
+  }
+
   async updateProfile(id: string, profile: Pick<NewUser, 'displayName'>) {
     return (await db.update(usersTable).set(profile).where(eq(usersTable.id, id)).returning())[0]
+  }
+
+  async updateRoleAndStatus(id: string, payload: Pick<NewUser, 'role' | 'status' | 'activatedAt'>) {
+    return (await db.update(usersTable).set(payload).where(eq(usersTable.id, id)).returning())[0]
   }
 }
 

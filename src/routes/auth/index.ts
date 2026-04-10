@@ -9,6 +9,7 @@ const authUserSchema = Type.Object({
   id: Type.String(),
   lineUserId: Type.String(),
   displayName: Type.String(),
+  role: Type.Union([Type.Literal('user'), Type.Literal('admin'), Type.Literal('owner')]),
   status: Type.Union([Type.Literal('pending'), Type.Literal('active'), Type.Literal('banned')]),
 })
 
@@ -65,6 +66,7 @@ const route: TypedRoutePlugin = async (app) => {
           id: user.id,
           lineUserId: user.lineUserId,
           displayName: user.displayName,
+          role: user.role,
           status: user.status,
         },
       }
@@ -89,6 +91,7 @@ const route: TypedRoutePlugin = async (app) => {
           id: user.id,
           lineUserId: user.lineUserId,
           displayName: user.displayName,
+          role: user.role,
           status: user.status,
         },
       }

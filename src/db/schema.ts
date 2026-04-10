@@ -16,6 +16,7 @@ import {
 const msTimestamp = (name: string) => timestamp(name, { precision: 3 })
 
 export const userStatusEnum = pgEnum('user_status', ['pending', 'active', 'banned'])
+export const userRoleEnum = pgEnum('user_role', ['user', 'admin', 'owner'])
 export const categoryTypeEnum = pgEnum('category_type', ['expense', 'income', 'both'])
 export const transactionTypeEnum = pgEnum('transaction_type', ['expense', 'income'])
 export const transactionSourceEnum = pgEnum('transaction_source', ['web', 'line'])
@@ -61,6 +62,7 @@ export const usersTable = pgTable(
     }),
     displayName: varchar('display_name').notNull(),
     status: userStatusEnum('status').notNull().default('pending'),
+    role: userRoleEnum('role').notNull().default('user'),
     activatedAt: msTimestamp('activated_at'),
     createdAt: msTimestamp('created_at').notNull().defaultNow(),
     updatedAt: msTimestamp('updated_at')
@@ -138,6 +140,7 @@ export type Transaction = typeof transactionsTable.$inferSelect
 export type NewTransaction = typeof transactionsTable.$inferInsert
 
 export type UserStatus = (typeof userStatusEnum.enumValues)[number]
+export type UserRole = (typeof userRoleEnum.enumValues)[number]
 export type CategoryType = (typeof categoryTypeEnum.enumValues)[number]
 export type TransactionType = (typeof transactionTypeEnum.enumValues)[number]
 export type TransactionSource = (typeof transactionSourceEnum.enumValues)[number]

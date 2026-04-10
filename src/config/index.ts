@@ -8,6 +8,7 @@ export interface IConfig {
   port: number
   openapi: SwaggerOptions
   fastifyInit: FastifyServerOptions
+  bootstrapOwnerLineUserId?: string
   jwt: {
     accessTokenSecret: string
     refreshTokenSecret: string
@@ -72,6 +73,7 @@ const schema = Type.Object({
   LINE_CHANNEL_ACCESS_TOKEN: Type.String(),
   LINE_ENDPOINT: Type.String({ default: 'https://api.line.me' }),
   DEFAULT_INVITE_CODE: Type.String(),
+  BOOTSTRAP_OWNER_LINE_USER_ID: Type.Optional(Type.String()),
   GEMINI_API_KEY: Type.Optional(Type.String()),
   GEMINI_MODEL: Type.String({ default: 'gemini-3.1-flash-lite-preview' }),
 })
@@ -127,6 +129,7 @@ function getConfig() {
         },
       },
     },
+    bootstrapOwnerLineUserId: env.BOOTSTRAP_OWNER_LINE_USER_ID,
     jwt: {
       accessTokenSecret: env.JWT_ACCESS_TOKEN_SECRET,
       refreshTokenSecret: env.JWT_REFRESH_TOKEN_SECRET,
