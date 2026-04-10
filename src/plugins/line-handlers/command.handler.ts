@@ -1,11 +1,16 @@
 import type { User } from '../../db/schema.ts'
 import { buildCategoriesFlexMessage } from '../../utils/category-flex-message.ts'
+import { getCurrentDateInBangkok } from '../../utils/date-helper.ts'
 import { definePlugin } from '../../utils/factories.ts'
 import {
   ReplyFlexMessage,
   ReplyTextMessage,
   type TextMessageEvent,
 } from '../../utils/line-helper.ts'
+import {
+  buildEmptyTodaySummaryFlexMessage,
+  buildTodaySummaryFlexMessage,
+} from '../../utils/today-summary-flex-message.ts'
 
 declare module 'fastify' {
   interface FastifyInstance {
@@ -22,7 +27,12 @@ export type LineCommandHandler = (
 const plugin = definePlugin(
   {
     name: 'line-command-handler',
-    dependencies: ['line', 'invite-code-repository', 'category-repository'],
+    dependencies: [
+      'line',
+      'invite-code-repository',
+      'category-repository',
+      'transaction-repository',
+    ],
   },
   async (app) => {
     const commands: Record<string, LineCommandHandler> = {
@@ -30,12 +40,13 @@ const plugin = definePlugin(
       '/join': handleJoin,
       '/categories': handleCategories,
       '/category': handleCategories,
+      '/today': handleToday,
     }
 
     async function handleHelp(_user: User, event: TextMessageEvent, _args: string[]) {
       const reply = new ReplyTextMessage(app, event.replyToken)
       await reply.execute(
-        'คำสั่งที่ใช้ได้:\n/help ดูคำสั่งทั้งหมด\n/join <code> ใช้โค้ดเชิญเพื่อเข้าร่วม\n/categories ดูหมวดหมู่ทั้งหมด',
+        'คำสั่งที่ใช้ได้:\n/help ดูคำสั่งทั้งหมด\n/join <code> ใช้โค้ดเชิญเพื่อเข้าร่วม\n/categories ดูหมวดหมู่ทั้งหมด\n/today ดูสรุปรายการวันนี้',
       )
     }
 
@@ -95,6 +106,24 @@ const plugin = definePlugin(
 
       const reply = new ReplyFlexMessage(app, event.replyToken)
       await reply.execute(buildCategoriesFlexMessage(categories))
+    }
+
+    async function handleToday(user: User, event: TextMessageEvent, _args: string[]) {
+      const reply = new ReplyFlexMessage(app, event.replyToken)
+      const today = getCurrentDateInBangkok()
+      const transactions = await app.transactionRepository.findByUserIdAndDate(user.id, today)
+
+      if (transactions.length === 0) {
+        await reply.execute(buildEmptyTodaySummaryFlexMessage(today))
+        return
+      }
+
+      await reply.execute(
+        buildTodaySummaryFlexMessage({
+          date: today,
+          transactions,
+        }),
+      )
     }
 
     async function handleUnknown(_user: User, event: TextMessageEvent, args: string[]) {

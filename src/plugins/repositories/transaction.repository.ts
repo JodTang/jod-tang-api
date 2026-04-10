@@ -1,4 +1,4 @@
-import { and, eq } from 'drizzle-orm'
+import { and, desc, eq } from 'drizzle-orm'
 import { db } from '../../db/index.ts'
 import { type NewTransaction, transactionsTable } from '../../db/schema.ts'
 import { definePlugin } from '../../utils/factories.ts'
@@ -18,6 +18,16 @@ export class TransactionRepository {
     return db.query.transactionsTable.findFirst({
       where: { id, userId },
     })
+  }
+
+  async findByUserIdAndDate(userId: string, transactedAt: string) {
+    return db
+      .select()
+      .from(transactionsTable)
+      .where(
+        and(eq(transactionsTable.userId, userId), eq(transactionsTable.transactedAt, transactedAt)),
+      )
+      .orderBy(desc(transactionsTable.createdAt))
   }
 
   async updateCategory(id: string, userId: string, categoryId: string) {
