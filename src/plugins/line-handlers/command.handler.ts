@@ -41,6 +41,7 @@ const plugin = definePlugin(
       '/categories': handleCategories,
       '/category': handleCategories,
       '/today': handleToday,
+      '/model': withOwnerGuard(handleModel),
     }
 
     async function handleHelp(_user: User, event: TextMessageEvent, _args: string[]) {
@@ -126,11 +127,29 @@ const plugin = definePlugin(
       )
     }
 
+    async function handleModel(_user: User, event: TextMessageEvent, _args: string[]) {
+      const reply = new ReplyTextMessage(app, event.replyToken)
+      const model = await app.gemini.getModel()
+      await reply.execute(`Current Gemini model: ${model}`)
+    }
+
     async function handleUnknown(_user: User, event: TextMessageEvent, args: string[]) {
       app.log.info({ args }, 'Unknown command')
 
       const reply = new ReplyTextMessage(app, event.replyToken)
       await reply.execute('ไม่พบคำสั่งนี้ ลองพิมพ์ /help เพื่อดูคำสั่งที่ใช้ได้')
+    }
+
+    function withOwnerGuard(handler: LineCommandHandler): LineCommandHandler {
+      return async (user, event, args) => {
+        if (user.role !== 'owner') {
+          const reply = new ReplyTextMessage(app, event.replyToken)
+          await reply.execute('คำสั่งนี้สำหรับ owner เท่านั้น')
+          return
+        }
+
+        await handler(user, event, args)
+      }
     }
 
     app.decorate('getLineCommandHandler', (command: string) => {
