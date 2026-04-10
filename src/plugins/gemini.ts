@@ -154,7 +154,7 @@ export class GeminiService {
     const schemaText =
       payload.responseJsonSchema === undefined ? '' : JSON.stringify(payload.responseJsonSchema)
 
-    this.#app.log.info(
+    this.#app.log.debug(
       {
         kind: payload.kind,
         model: payload.model,
@@ -171,7 +171,7 @@ export class GeminiService {
   }
 
   #logResponse(payload: { kind: 'json' | 'text'; model: string; text: string }) {
-    this.#app.log.info(
+    this.#app.log.debug(
       {
         kind: payload.kind,
         model: payload.model,
