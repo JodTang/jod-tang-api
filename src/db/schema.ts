@@ -37,6 +37,20 @@ export const inviteCodesTable = pgTable(
   (table) => [index('invite_codes_code_idx').on(table.code)],
 )
 
+export const appSettingsTable = pgTable(
+  'app_settings',
+  {
+    key: varchar('key', { length: 255 }).primaryKey(),
+    value: text('value').notNull(),
+    createdAt: msTimestamp('created_at').notNull().defaultNow(),
+    updatedAt: msTimestamp('updated_at')
+      .notNull()
+      .defaultNow()
+      .$onUpdate(() => new Date()),
+  },
+  (table) => [index('app_settings_key_idx').on(table.key)],
+)
+
 export const usersTable = pgTable(
   'users',
   {
@@ -114,6 +128,8 @@ export type PgTransaction = NodePgTransaction<any, any, any>
 
 export type InviteCode = typeof inviteCodesTable.$inferSelect
 export type NewInviteCode = typeof inviteCodesTable.$inferInsert
+export type AppSetting = typeof appSettingsTable.$inferSelect
+export type NewAppSetting = typeof appSettingsTable.$inferInsert
 export type User = typeof usersTable.$inferSelect
 export type NewUser = typeof usersTable.$inferInsert
 export type Category = typeof categoriesTable.$inferSelect

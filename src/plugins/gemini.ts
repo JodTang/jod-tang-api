@@ -39,15 +39,15 @@ export class GeminiService {
     return this.#client !== null
   }
 
-  getModel() {
-    return this.#defaultModel
+  async getModel() {
+    return this.#resolveModel()
   }
 
   async generateText(
     prompt: string,
     options: GeminiGenerateTextOptions = {},
   ): Promise<GeminiGenerateTextResult> {
-    const { client, model } = this.#getClientAndModel(options.model)
+    const { client, model } = await this.#getClientAndModel(options.model)
     const response = await client.models.generateContent({
       model,
       contents: prompt,
@@ -69,7 +69,7 @@ export class GeminiService {
   }
 
   async generateJson<T>(prompt: string, options: GeminiGenerateJsonOptions): Promise<T> {
-    const { client, model } = this.#getClientAndModel(options.model)
+    const { client, model } = await this.#getClientAndModel(options.model)
     const response = await client.models.generateContent({
       model,
       contents: prompt,
@@ -96,7 +96,7 @@ export class GeminiService {
     }
   }
 
-  #getClientAndModel(modelOverride?: string) {
+  async #getClientAndModel(modelOverride?: string) {
     if (!this.#client) {
       throw this.#app.httpErrors.serviceUnavailable(
         'Gemini API is not configured. Set GEMINI_API_KEY before using this endpoint.',
@@ -105,20 +105,30 @@ export class GeminiService {
 
     return {
       client: this.#client,
-      model: modelOverride || this.#defaultModel,
+      model: modelOverride || (await this.#resolveModel()),
     }
+  }
+
+  async #resolveModel() {
+    const setting = await this.#app.appSettingsRepository.getGeminiModel()
+    return setting?.value || this.#defaultModel
   }
 }
 
 const plugin = definePlugin(
   {
     name: 'gemini',
+    dependencies: ['app-settings-repository'],
   },
   async (app, { config }) => {
     const client = config.gemini.apiKey ? new GoogleGenAI({ apiKey: config.gemini.apiKey }) : null
 
     if (client) {
-      app.log.info({ model: config.gemini.model }, 'Gemini client configured')
+      const model = await app.appSettingsRepository.getGeminiModel()
+      app.log.info(
+        { model: model?.value || config.gemini.model },
+        'Gemini client configured with database-backed model setting',
+      )
     } else {
       app.log.warn('Gemini client is disabled because GEMINI_API_KEY is missing')
     }

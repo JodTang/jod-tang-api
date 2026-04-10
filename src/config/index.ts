@@ -73,7 +73,7 @@ const schema = Type.Object({
   LINE_ENDPOINT: Type.String({ default: 'https://api.line.me' }),
   DEFAULT_INVITE_CODE: Type.String(),
   GEMINI_API_KEY: Type.Optional(Type.String()),
-  GEMINI_MODEL: Type.String({ default: 'gemini-2.5-flash-lite' }),
+  GEMINI_MODEL: Type.String({ default: 'gemini-3.1-flash-lite-preview' }),
 })
 
 function getConfig() {
