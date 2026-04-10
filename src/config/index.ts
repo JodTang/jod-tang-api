@@ -24,6 +24,10 @@ export interface IConfig {
     secret: string
     endpoint: string
   }
+  gemini: {
+    apiKey?: string
+    model: string
+  }
 }
 
 function getLoggerConfig(logLevel: string) {
@@ -68,6 +72,8 @@ const schema = Type.Object({
   LINE_CHANNEL_ACCESS_TOKEN: Type.String(),
   LINE_ENDPOINT: Type.String({ default: 'https://api.line.me' }),
   DEFAULT_INVITE_CODE: Type.String(),
+  GEMINI_API_KEY: Type.Optional(Type.String()),
+  GEMINI_MODEL: Type.String({ default: 'gemini-2.5-flash-lite' }),
 })
 
 function getConfig() {
@@ -136,6 +142,10 @@ function getConfig() {
       accessToken: env.LINE_CHANNEL_ACCESS_TOKEN,
       secret: env.LINE_CHANNEL_SECRET,
       endpoint: env.LINE_ENDPOINT,
+    },
+    gemini: {
+      apiKey: env.GEMINI_API_KEY,
+      model: env.GEMINI_MODEL,
     },
   }
 

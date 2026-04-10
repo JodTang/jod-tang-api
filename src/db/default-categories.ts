@@ -17,6 +17,7 @@ export const DEFAULT_USER_CATEGORIES: DefaultCategoryDefinition[] = [
   { name: 'งาน freelance', icon: '💼', type: 'income' },
   { name: 'รับเงินโอน', icon: '🎁', type: 'income' },
   { name: 'ลงทุน', icon: '📈', type: 'income' },
+  { name: 'อื่นๆ', icon: '📦', type: 'both' },
 ]
 
 export function buildDefaultCategoriesForUser(userId: string): NewCategory[] {
