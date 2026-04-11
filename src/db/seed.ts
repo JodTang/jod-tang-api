@@ -10,9 +10,48 @@ import {
   usersTable,
 } from './schema.ts'
 
+interface SeedContext {
+  app: FastifyInstance
+  config: IConfig
+}
+
+interface SeedTask {
+  name: string
+  run: (context: SeedContext) => Promise<void>
+}
+
 export async function seed(app: FastifyInstance, config: IConfig) {
   app.log.info('Seeding database...')
 
+  const context = { app, config } satisfies SeedContext
+  const tasks: SeedTask[] = [
+    {
+      name: 'default-invite-code',
+      run: ensureDefaultInviteCode,
+    },
+    {
+      name: 'gemini-model-setting',
+      run: ensureGeminiModelSetting,
+    },
+    {
+      name: 'bootstrap-owner',
+      run: ensureBootstrapOwner,
+    },
+    {
+      name: 'bootstrap-owner-local-auth',
+      run: ensureBootstrapOwnerLocalAuth,
+    },
+  ]
+
+  for (const task of tasks) {
+    app.log.debug({ task: task.name }, 'Running seed task')
+    await task.run(context)
+  }
+
+  app.log.info('Database seeding completed')
+}
+
+async function ensureDefaultInviteCode({ app }: SeedContext) {
   const inviteCode = await db.query.inviteCodesTable.findFirst()
   if (!inviteCode) {
     app.log.info('No invite codes found, creating default invite code...')
@@ -25,7 +64,9 @@ export async function seed(app: FastifyInstance, config: IConfig) {
     })
     app.log.info('Default invite code created')
   }
+}
 
+async function ensureGeminiModelSetting({ app, config }: SeedContext) {
   const geminiModelSetting = await db.query.appSettingsTable.findFirst({
     where: { key: 'gemini_model' },
   })
@@ -41,7 +82,9 @@ export async function seed(app: FastifyInstance, config: IConfig) {
     })
     app.log.info('Default Gemini model setting created')
   }
+}
 
+async function ensureBootstrapOwner({ app, config }: SeedContext) {
   const existingOwner = await db.query.usersTable.findFirst({
     where: { role: 'owner' },
   })
@@ -79,7 +122,9 @@ export async function seed(app: FastifyInstance, config: IConfig) {
       )
     }
   }
+}
 
+async function ensureBootstrapOwnerLocalAuth({ app, config }: SeedContext) {
   const bootstrapOwnerUsername = config.localAuth.bootstrapOwnerUsername?.trim()
   const bootstrapOwnerPassword = config.localAuth.bootstrapOwnerPassword
 
@@ -100,7 +145,6 @@ export async function seed(app: FastifyInstance, config: IConfig) {
         { username: bootstrapOwnerUsername },
         'Skipping bootstrap owner local auth because no owner user exists',
       )
-      app.log.info('Database seeding completed')
       return
     }
 
@@ -126,6 +170,4 @@ export async function seed(app: FastifyInstance, config: IConfig) {
       'Bootstrap owner local auth configured',
     )
   }
-
-  app.log.info('Database seeding completed')
 }
