@@ -1,26 +1,10 @@
-import Type from 'typebox'
 import type { TypedRoutePlugin } from '../../utils/factories.ts'
-
-const generateGeminiBodySchema = Type.Object({
-  prompt: Type.String({ minLength: 1, maxLength: 20000 }),
-  systemInstruction: Type.Optional(Type.String({ minLength: 1, maxLength: 4000 })),
-  model: Type.Optional(Type.String({ minLength: 1 })),
-  temperature: Type.Optional(Type.Number({ minimum: 0, maximum: 2 })),
-  maxOutputTokens: Type.Optional(Type.Number({ minimum: 1, maximum: 65536 })),
-})
-
-const generateGeminiResponseSchema = Type.Object({
-  model: Type.String(),
-  text: Type.String(),
-})
-
-const updateGeminiModelBodySchema = Type.Object({
-  model: Type.String({ minLength: 1, maxLength: 255 }),
-})
-
-const geminiModelResponseSchema = Type.Object({
-  model: Type.String(),
-})
+import {
+  geminiModelResponseSchema,
+  generateGeminiBodySchema,
+  generateGeminiResponseSchema,
+  updateGeminiModelBodySchema,
+} from './schema.ts'
 
 const route: TypedRoutePlugin = async (app) => {
   app.post(

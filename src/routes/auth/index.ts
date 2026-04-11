@@ -1,47 +1,14 @@
-import Type from 'typebox'
 import type { TypedRoutePlugin } from '../../utils/factories.ts'
 import { hashPassword, verifyPassword } from '../../utils/password.ts'
-
-const lineAuthBodySchema = Type.Object({
-  idToken: Type.String({ minLength: 1 }),
-})
-
-const localAuthBodySchema = Type.Object({
-  username: Type.String({ minLength: 1, maxLength: 255 }),
-  password: Type.String({ minLength: 1, maxLength: 255 }),
-})
-
-const createLocalAuthCredentialBodySchema = Type.Object({
-  userId: Type.String({ format: 'uuid' }),
-  username: Type.String({ minLength: 1, maxLength: 255 }),
-  password: Type.String({ minLength: 1, maxLength: 255 }),
-})
-
-const authUserSchema = Type.Object({
-  id: Type.String(),
-  lineUserId: Type.String(),
-  displayName: Type.String(),
-  pictureUrl: Type.Union([Type.String(), Type.Null()]),
-  role: Type.Enum(['user', 'admin', 'owner']),
-  status: Type.Enum(['pending', 'active', 'banned']),
-})
-
-const authSuccessSchema = Type.Object({
-  accessToken: Type.String(),
-  tokenType: Type.Literal('Bearer'),
-  user: authUserSchema,
-})
-
-const meResponseSchema = Type.Object({
-  user: authUserSchema,
-})
-
-const localAuthCredentialResponseSchema = Type.Object({
-  user: authUserSchema,
-  credential: Type.Object({
-    username: Type.String(),
-  }),
-})
+import {
+  authSuccessSchema,
+  createLocalAuthCredentialBodySchema,
+  lineAuthBodySchema,
+  localAuthBodySchema,
+  localAuthCredentialResponseSchema,
+  logoutResponseSchema,
+  meResponseSchema,
+} from './schema.ts'
 
 const route: TypedRoutePlugin = async (app) => {
   app.post(
@@ -270,7 +237,7 @@ const route: TypedRoutePlugin = async (app) => {
         summary: 'Logout',
         description: 'Logout and clear access token cookie',
         response: {
-          204: Type.Null(),
+          204: logoutResponseSchema,
         },
       },
       config: {

@@ -1,4 +1,4 @@
-import Type, { type Static } from 'typebox'
+import type { Static } from 'typebox'
 import type { NewTransaction, TransactionType } from '../../db/schema.ts'
 import type {
   ListTransactionsParams,
@@ -6,113 +6,21 @@ import type {
   TransactionListSortBy,
   TransactionWithCategory,
 } from '../../plugins/repositories/transaction.repository.ts'
-import { OptionalWithDefault, TDate } from '../../plugins/shared-schemas.ts'
 import type { TypedRoutePlugin } from '../../utils/factories.ts'
 import { canAssignCategoryToTransaction } from '../../utils/transaction-category-postback.ts'
-
-const TDateOnly = Type.String({ format: 'date' })
-const TAmountString = Type.String({
-  pattern: '^\\d+(?:\\.\\d{1,2})?$',
-})
-
-const transactionTypeSchema = Type.Enum(['expense', 'income'])
-const transactionSourceSchema = Type.Enum(['web', 'line'])
-const transactionSortBySchema = Type.Enum(['transactedAt', 'createdAt', 'amount'])
-
-const transactionCategorySchema = Type.Object({
-  id: Type.String({ format: 'uuid' }),
-  name: Type.String(),
-  icon: Type.Union([Type.String(), Type.Null()]),
-  type: Type.Enum(['expense', 'income', 'both']),
-})
-
-const transactionDetailSchema = Type.Object({
-  id: Type.String({ format: 'uuid' }),
-  type: transactionTypeSchema,
-  amount: Type.String(),
-  note: Type.Union([Type.String(), Type.Null()]),
-  sourceText: Type.Union([Type.String(), Type.Null()]),
-  transactedAt: TDateOnly,
-  source: Type.Union([transactionSourceSchema, Type.Null()]),
-  categoryId: Type.Union([Type.String({ format: 'uuid' }), Type.Null()]),
-  createdAt: TDate,
-  updatedAt: TDate,
-  category: Type.Union([transactionCategorySchema, Type.Null()]),
-})
-
-const transactionResponseSchema = Type.Object({
-  transaction: transactionDetailSchema,
-})
-
-const transactionListQuerySchema = Type.Object({
-  transactedAt: Type.Optional(TDateOnly),
-  dateFrom: Type.Optional(TDateOnly),
-  dateTo: Type.Optional(TDateOnly),
-  type: Type.Optional(transactionTypeSchema),
-  categoryId: Type.Optional(Type.String({ format: 'uuid' })),
-  source: Type.Optional(transactionSourceSchema),
-  q: Type.Optional(Type.String({ minLength: 1, maxLength: 255 })),
-  page: OptionalWithDefault(Type.Integer({ minimum: 1 }), { default: 1 }),
-  pageSize: OptionalWithDefault(Type.Integer({ minimum: 1, maximum: 100 }), { default: 20 }),
-  sortBy: OptionalWithDefault(transactionSortBySchema, { default: 'transactedAt' }),
-  sortOrder: OptionalWithDefault(Type.Enum(['asc', 'desc']), { default: 'desc' }),
-})
-
-const transactionListResponseSchema = Type.Object({
-  items: Type.Array(transactionDetailSchema),
-  meta: Type.Object({
-    page: Type.Integer({ minimum: 1 }),
-    pageSize: Type.Integer({ minimum: 1 }),
-    totalItems: Type.Integer({ minimum: 0 }),
-    totalPages: Type.Integer({ minimum: 0 }),
-  }),
-})
-
-const transactionSummaryQuerySchema = Type.Object({
-  transactedAt: Type.Optional(TDateOnly),
-  dateFrom: Type.Optional(TDateOnly),
-  dateTo: Type.Optional(TDateOnly),
-  type: Type.Optional(transactionTypeSchema),
-  categoryId: Type.Optional(Type.String({ format: 'uuid' })),
-  source: Type.Optional(transactionSourceSchema),
-  q: Type.Optional(Type.String({ minLength: 1, maxLength: 255 })),
-})
-
-const transactionSummaryResponseSchema = Type.Object({
-  incomeTotal: Type.String(),
-  expenseTotal: Type.String(),
-  netTotal: Type.String(),
-  totalItems: Type.Integer({ minimum: 0 }),
-})
-
-const transactionParamsSchema = Type.Object({
-  id: Type.String({ format: 'uuid' }),
-})
-
-const createTransactionBodySchema = Type.Object({
-  type: transactionTypeSchema,
-  amount: TAmountString,
-  transactedAt: TDateOnly,
-  categoryId: Type.Optional(Type.Union([Type.String({ format: 'uuid' }), Type.Null()])),
-  note: Type.Optional(Type.Union([Type.String({ maxLength: 5000 }), Type.Null()])),
-})
-
-const updateTransactionBodySchema = Type.Object(
-  {
-    type: Type.Optional(transactionTypeSchema),
-    amount: Type.Optional(TAmountString),
-    transactedAt: Type.Optional(TDateOnly),
-    categoryId: Type.Optional(Type.Union([Type.String({ format: 'uuid' }), Type.Null()])),
-    note: Type.Optional(Type.Union([Type.String({ maxLength: 5000 }), Type.Null()])),
-  },
-  {
-    minProperties: 1,
-  },
-)
-
-const updateTransactionCategoryBodySchema = Type.Object({
-  categoryId: Type.Union([Type.String({ format: 'uuid' }), Type.Null()]),
-})
+import {
+  createTransactionBodySchema,
+  deleteTransactionResponseSchema,
+  type transactionDetailSchema,
+  transactionListQuerySchema,
+  transactionListResponseSchema,
+  transactionParamsSchema,
+  transactionResponseSchema,
+  transactionSummaryQuerySchema,
+  transactionSummaryResponseSchema,
+  updateTransactionBodySchema,
+  updateTransactionCategoryBodySchema,
+} from './schema.ts'
 
 type TransactionDetail = Static<typeof transactionDetailSchema>
 
@@ -566,7 +474,7 @@ const route: TypedRoutePlugin = async (app) => {
         description: 'Delete a transaction for the authenticated user',
         params: transactionParamsSchema,
         response: {
-          204: Type.Null(),
+          204: deleteTransactionResponseSchema,
           401: { $ref: 'responses#/properties/unauthorized', description: 'Unauthorized' },
           404: { $ref: 'responses#/properties/notFound', description: 'Not Found' },
         },
