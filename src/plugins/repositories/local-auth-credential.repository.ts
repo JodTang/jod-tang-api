@@ -10,10 +10,32 @@ declare module 'fastify' {
 }
 
 export class LocalAuthCredentialRepository {
+  async findByUserId(userId: string) {
+    return db.query.localAuthCredentialsTable.findFirst({
+      where: { userId },
+    })
+  }
+
   async findByUsername(username: string) {
     return db.query.localAuthCredentialsTable.findFirst({
       where: { username },
     })
+  }
+
+  async createForUser(
+    userId: string,
+    payload: Pick<LocalAuthCredential, 'passwordHash' | 'username'>,
+  ) {
+    return (
+      await db
+        .insert(localAuthCredentialsTable)
+        .values({
+          userId,
+          username: payload.username,
+          passwordHash: payload.passwordHash,
+        })
+        .returning()
+    )[0]
   }
 
   async upsertForUser(

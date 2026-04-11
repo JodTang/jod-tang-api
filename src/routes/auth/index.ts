@@ -1,12 +1,18 @@
 import Type from 'typebox'
 import type { TypedRoutePlugin } from '../../utils/factories.ts'
-import { verifyPassword } from '../../utils/password.ts'
+import { hashPassword, verifyPassword } from '../../utils/password.ts'
 
 const lineAuthBodySchema = Type.Object({
   idToken: Type.String({ minLength: 1 }),
 })
 
 const localAuthBodySchema = Type.Object({
+  username: Type.String({ minLength: 1, maxLength: 255 }),
+  password: Type.String({ minLength: 1, maxLength: 255 }),
+})
+
+const createLocalAuthCredentialBodySchema = Type.Object({
+  userId: Type.String({ format: 'uuid' }),
   username: Type.String({ minLength: 1, maxLength: 255 }),
   password: Type.String({ minLength: 1, maxLength: 255 }),
 })
@@ -29,20 +35,90 @@ const meResponseSchema = Type.Object({
   user: authUserSchema,
 })
 
+const localAuthCredentialResponseSchema = Type.Object({
+  user: authUserSchema,
+  credential: Type.Object({
+    username: Type.String(),
+  }),
+})
+
 const route: TypedRoutePlugin = async (app) => {
+  app.post(
+    '/auth/local/credentials',
+    {
+      schema: {
+        tags: ['auth'],
+        summary: 'Create local auth credential',
+        description: 'Create a local username and password for a user',
+        body: createLocalAuthCredentialBodySchema,
+        response: {
+          201: localAuthCredentialResponseSchema,
+          400: { $ref: 'responses#/properties/badRequest', description: 'Bad Request' },
+          401: { $ref: 'responses#/properties/unauthorized', description: 'Unauthorized' },
+          403: { $ref: 'responses#/properties/forbidden', description: 'Forbidden' },
+          404: { $ref: 'responses#/properties/notFound', description: 'Not Found' },
+          409: { $ref: 'responses#/properties/conflict', description: 'Conflict' },
+        },
+      },
+      preHandler: [app.authenticate, app.authorizeRoles('owner')],
+    },
+    async (request, reply) => {
+      const username = request.body.username.trim()
+      if (!username) {
+        throw app.httpErrors.badRequest('Username is required')
+      }
+
+      const user = await app.userRepository.findById(request.body.userId)
+      if (!user) {
+        throw app.httpErrors.notFound('User not found')
+      }
+
+      const existingCredentialForUser = await app.localAuthCredentialRepository.findByUserId(
+        user.id,
+      )
+      if (existingCredentialForUser) {
+        throw app.httpErrors.conflict('User already has local auth credentials')
+      }
+
+      const existingCredentialForUsername =
+        await app.localAuthCredentialRepository.findByUsername(username)
+      if (existingCredentialForUsername) {
+        throw app.httpErrors.conflict('Username is already in use')
+      }
+
+      const credential = await app.localAuthCredentialRepository.createForUser(user.id, {
+        username,
+        passwordHash: await hashPassword(request.body.password),
+      })
+
+      reply.code(201)
+      return {
+        user: {
+          id: user.id,
+          lineUserId: user.lineUserId,
+          displayName: user.displayName,
+          role: user.role,
+          status: user.status,
+        },
+        credential: {
+          username: credential.username,
+        },
+      }
+    },
+  )
+
   app.post(
     '/auth/local',
     {
       schema: {
         tags: ['auth'],
-        summary: 'Local owner login',
-        description: 'Login with local username and password for owner access',
+        summary: 'Local login',
+        description: 'Login with local username and password',
         body: localAuthBodySchema,
         response: {
           200: authSuccessSchema,
           400: { $ref: 'responses#/properties/badRequest', description: 'Bad Request' },
           401: { $ref: 'responses#/properties/unauthorized', description: 'Unauthorized' },
-          403: { $ref: 'responses#/properties/forbidden', description: 'Forbidden' },
         },
       },
     },
@@ -56,10 +132,6 @@ const route: TypedRoutePlugin = async (app) => {
       const authRecord = await app.localAuthCredentialRepository.findUserByUsername(username)
       if (!authRecord) {
         throw app.httpErrors.unauthorized('Invalid username or password')
-      }
-
-      if (authRecord.user.role !== 'owner') {
-        throw app.httpErrors.forbidden('Local login is only available for owner')
       }
 
       const isPasswordValid = await verifyPassword(password, authRecord.credential.passwordHash)
