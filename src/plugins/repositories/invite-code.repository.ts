@@ -32,10 +32,30 @@ export class InviteCodeRepository {
     return (await db.insert(inviteCodesTable).values(inviteCode).returning())[0]
   }
 
+  async findById(id: string) {
+    return db.query.inviteCodesTable.findFirst({
+      where: { id },
+    })
+  }
+
   async findByCode(code: string) {
     return db.query.inviteCodesTable.findFirst({
       where: { code },
     })
+  }
+
+  async updateById(id: string, inviteCode: Partial<NewInviteCode>) {
+    return (
+      await db
+        .update(inviteCodesTable)
+        .set(inviteCode)
+        .where(eq(inviteCodesTable.id, id))
+        .returning()
+    )[0]
+  }
+
+  async deleteById(id: string) {
+    return (await db.delete(inviteCodesTable).where(eq(inviteCodesTable.id, id)).returning())[0]
   }
 
   async findAvailable(code: string) {

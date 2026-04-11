@@ -30,6 +30,10 @@ const createInviteCodeResponseSchema = Type.Object({
   inviteCode: inviteCodeSchema,
 })
 
+const inviteCodeParamsSchema = Type.Object({
+  id: Type.String({ format: 'uuid' }),
+})
+
 const inviteCodeListStatusSchema = Type.Enum(['active', 'expired', 'exhausted'])
 
 const inviteCodeListSortBySchema = Type.Enum([
@@ -70,6 +74,23 @@ const inviteCodeListResponseSchema = Type.Object({
     totalPages: Type.Integer({ minimum: 0 }),
   }),
 })
+
+const updateInviteCodeBodySchema = Type.Object(
+  {
+    code: Type.Optional(
+      Type.String({
+        minLength: 4,
+        maxLength: 32,
+        pattern: '^[A-Z0-9-]+$',
+      }),
+    ),
+    maxUses: Type.Optional(Type.Integer({ minimum: 1 })),
+    expiresAt: Type.Optional(Type.Union([TDate, Type.Null()])),
+  },
+  {
+    minProperties: 1,
+  },
+)
 
 const route: TypedRoutePlugin = async (app) => {
   function normalizeExpiresAt(expiresAt?: string | Date | null) {
@@ -237,6 +258,108 @@ const route: TypedRoutePlugin = async (app) => {
 
         throw error
       }
+    },
+  )
+
+  app.patch(
+    '/invite-codes/:id',
+    {
+      schema: {
+        tags: ['invite-codes'],
+        summary: 'Update invite code',
+        description: 'Update an existing invite code',
+        params: inviteCodeParamsSchema,
+        body: updateInviteCodeBodySchema,
+        response: {
+          200: createInviteCodeResponseSchema,
+          400: { $ref: 'responses#/properties/badRequest', description: 'Bad Request' },
+          401: { $ref: 'responses#/properties/unauthorized', description: 'Unauthorized' },
+          403: { $ref: 'responses#/properties/forbidden', description: 'Forbidden' },
+          404: { $ref: 'responses#/properties/notFound', description: 'Not Found' },
+          409: { $ref: 'responses#/properties/conflict', description: 'Conflict' },
+        },
+      },
+      preHandler: [app.authenticate, app.authorizeRoles('admin', 'owner')],
+    },
+    async (request) => {
+      const existingInviteCode = await app.inviteCodeRepository.findById(request.params.id)
+      if (!existingInviteCode) {
+        throw app.httpErrors.notFound('Invite code not found')
+      }
+
+      const requestedCode = request.body.code?.trim().toUpperCase()
+      if (request.body.code !== undefined && !requestedCode) {
+        throw app.httpErrors.badRequest('Invite code is required')
+      }
+
+      if (requestedCode && requestedCode !== existingInviteCode.code) {
+        const duplicateCode = await app.inviteCodeRepository.findByCode(requestedCode)
+        if (duplicateCode) {
+          throw app.httpErrors.conflict('Invite code already exists')
+        }
+      }
+
+      if (
+        request.body.maxUses !== undefined &&
+        request.body.maxUses < existingInviteCode.usedCount
+      ) {
+        throw app.httpErrors.badRequest('maxUses cannot be lower than usedCount')
+      }
+
+      const updatePayload = {
+        ...(requestedCode ? { code: requestedCode } : {}),
+        ...(request.body.maxUses !== undefined ? { maxUses: request.body.maxUses } : {}),
+        ...(request.body.expiresAt !== undefined
+          ? { expiresAt: normalizeExpiresAt(request.body.expiresAt as string | Date | null) }
+          : {}),
+      }
+
+      try {
+        const inviteCode = await app.inviteCodeRepository.updateById(
+          request.params.id,
+          updatePayload,
+        )
+        if (!inviteCode) {
+          throw app.httpErrors.notFound('Invite code not found')
+        }
+
+        return {
+          inviteCode,
+        }
+      } catch (error) {
+        if (isUniqueViolation(error)) {
+          throw app.httpErrors.conflict('Invite code already exists')
+        }
+
+        throw error
+      }
+    },
+  )
+
+  app.delete(
+    '/invite-codes/:id',
+    {
+      schema: {
+        tags: ['invite-codes'],
+        summary: 'Delete invite code',
+        description: 'Delete an existing invite code',
+        params: inviteCodeParamsSchema,
+        response: {
+          204: Type.Null(),
+          401: { $ref: 'responses#/properties/unauthorized', description: 'Unauthorized' },
+          403: { $ref: 'responses#/properties/forbidden', description: 'Forbidden' },
+          404: { $ref: 'responses#/properties/notFound', description: 'Not Found' },
+        },
+      },
+      preHandler: [app.authenticate, app.authorizeRoles('admin', 'owner')],
+    },
+    async (request, reply) => {
+      const inviteCode = await app.inviteCodeRepository.deleteById(request.params.id)
+      if (!inviteCode) {
+        throw app.httpErrors.notFound('Invite code not found')
+      }
+
+      reply.code(204).send(null)
     },
   )
 }
