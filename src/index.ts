@@ -16,8 +16,8 @@ closeWithGrace({ delay: 1000 }, async ({ signal, err }) => {
 })
 
 try {
-  await app.listen({ port: config.port, host: config.host })
   await seed(app, config)
+  await app.listen({ port: config.port, host: config.host })
   app.log.info(`API documentation: http://localhost:${config.port}/api/docs`)
 } catch (err) {
   app.log.error(err)
