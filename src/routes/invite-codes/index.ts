@@ -1,5 +1,6 @@
 import { randomBytes } from 'node:crypto'
 import Type from 'typebox'
+import type { InviteCodeListStatus } from '../../plugins/repositories/invite-code.repository.ts'
 import { OptionalWithDefault, TDate } from '../../plugins/shared-schemas.ts'
 import type { TypedRoutePlugin } from '../../utils/factories.ts'
 
@@ -27,6 +28,47 @@ const inviteCodeSchema = Type.Object({
 
 const createInviteCodeResponseSchema = Type.Object({
   inviteCode: inviteCodeSchema,
+})
+
+const inviteCodeListStatusSchema = Type.Enum(['active', 'expired', 'exhausted'])
+
+const inviteCodeListSortBySchema = Type.Enum([
+  'code',
+  'createdAt',
+  'expiresAt',
+  'maxUses',
+  'usedCount',
+])
+
+const inviteCodeListQuerySchema = Type.Object({
+  code: Type.Optional(Type.String({ minLength: 1, maxLength: 255 })),
+  status: Type.Optional(inviteCodeListStatusSchema),
+  page: OptionalWithDefault(Type.Integer({ minimum: 1 }), { default: 1 }),
+  pageSize: OptionalWithDefault(Type.Integer({ minimum: 1, maximum: 100 }), { default: 20 }),
+  sortBy: OptionalWithDefault(inviteCodeListSortBySchema, { default: 'createdAt' }),
+  sortOrder: OptionalWithDefault(Type.Enum(['asc', 'desc']), { default: 'desc' }),
+})
+
+const inviteCodeListItemSchema = Type.Object({
+  id: Type.String({ format: 'uuid' }),
+  code: Type.String(),
+  maxUses: Type.Integer(),
+  usedCount: Type.Integer(),
+  remainingUses: Type.Integer({ minimum: 0 }),
+  status: inviteCodeListStatusSchema,
+  expiresAt: Type.Union([TDate, Type.Null()]),
+  createdAt: TDate,
+  updatedAt: TDate,
+})
+
+const inviteCodeListResponseSchema = Type.Object({
+  items: Type.Array(inviteCodeListItemSchema),
+  meta: Type.Object({
+    page: Type.Integer({ minimum: 1 }),
+    pageSize: Type.Integer({ minimum: 1 }),
+    totalItems: Type.Integer({ minimum: 0 }),
+    totalPages: Type.Integer({ minimum: 0 }),
+  }),
 })
 
 const route: TypedRoutePlugin = async (app) => {
@@ -66,6 +108,88 @@ const route: TypedRoutePlugin = async (app) => {
 
     return 'code' in error && error.code === '23505'
   }
+
+  function getInviteCodeStatus(inviteCode: {
+    expiresAt: Date | null
+    maxUses: number
+    usedCount: number
+  }): InviteCodeListStatus {
+    const now = Date.now()
+
+    if (inviteCode.expiresAt && inviteCode.expiresAt.getTime() <= now) {
+      return 'expired'
+    }
+
+    if (inviteCode.usedCount >= inviteCode.maxUses) {
+      return 'exhausted'
+    }
+
+    return 'active'
+  }
+
+  function toInviteCodeListItem(inviteCode: {
+    id: string
+    code: string
+    maxUses: number
+    usedCount: number
+    expiresAt: Date | null
+    createdAt: Date
+    updatedAt: Date
+  }) {
+    return {
+      id: inviteCode.id,
+      code: inviteCode.code,
+      maxUses: inviteCode.maxUses,
+      usedCount: inviteCode.usedCount,
+      remainingUses: Math.max(inviteCode.maxUses - inviteCode.usedCount, 0),
+      status: getInviteCodeStatus(inviteCode),
+      expiresAt: inviteCode.expiresAt,
+      createdAt: inviteCode.createdAt,
+      updatedAt: inviteCode.updatedAt,
+    }
+  }
+
+  app.get(
+    '/invite-codes',
+    {
+      schema: {
+        tags: ['invite-codes'],
+        summary: 'List invite codes',
+        description: 'List invite codes with filtering, sorting, and pagination',
+        querystring: inviteCodeListQuerySchema,
+        response: {
+          200: inviteCodeListResponseSchema,
+          400: { $ref: 'responses#/properties/badRequest', description: 'Bad Request' },
+          401: { $ref: 'responses#/properties/unauthorized', description: 'Unauthorized' },
+          403: { $ref: 'responses#/properties/forbidden', description: 'Forbidden' },
+        },
+      },
+      preHandler: [app.authenticate, app.authorizeRoles('admin', 'owner')],
+    },
+    async (request) => {
+      const filters = {
+        code: request.query.code?.trim(),
+        status: request.query.status,
+        page: request.query.page,
+        pageSize: request.query.pageSize,
+        sortBy: request.query.sortBy,
+        sortOrder: request.query.sortOrder,
+      }
+
+      const { items, totalItems } = await app.inviteCodeRepository.list(filters)
+      const totalPages = totalItems === 0 ? 0 : Math.ceil(totalItems / filters.pageSize)
+
+      return {
+        items: items.map(toInviteCodeListItem),
+        meta: {
+          page: filters.page,
+          pageSize: filters.pageSize,
+          totalItems,
+          totalPages,
+        },
+      }
+    },
+  )
 
   app.post(
     '/invite-codes',
