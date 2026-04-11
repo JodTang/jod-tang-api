@@ -1,11 +1,16 @@
 import type { messagingApi } from '@line/bot-sdk'
 import type { Category, Transaction, TransactionType } from '../db/schema.ts'
 
-interface BuildTransactionResultOptions {
+interface BuildTransactionCategoryOptions {
   category?: Pick<Category, 'name' | 'icon'> | null
 }
 
-interface BuildTransactionResultItem extends BuildTransactionResultOptions {
+interface BuildTransactionResultOptions extends BuildTransactionCategoryOptions {
+  altText?: string
+  headerTitle?: string
+}
+
+interface BuildTransactionResultItem extends BuildTransactionCategoryOptions {
   transaction: Pick<Transaction, 'amount' | 'note' | 'transactedAt' | 'type'>
 }
 
@@ -19,15 +24,17 @@ export function buildTransactionResultFlexMessage(
 
   return {
     type: 'flex',
-    altText: buildAltText(items),
-    contents: buildTransactionResultBubble(items),
+    altText: options.altText || buildAltText(items),
+    contents: buildTransactionResultBubble(items, options),
   }
 }
 
 function buildTransactionResultBubble(
   items: BuildTransactionResultItem[],
+  options: BuildTransactionResultOptions,
 ): messagingApi.FlexBubble {
   const theme = getResultTheme(items)
+  const headerTitle = options.headerTitle || 'บันทึกรายการสำเร็จ'
 
   return {
     type: 'bubble',
@@ -40,7 +47,7 @@ function buildTransactionResultBubble(
       contents: [
         {
           type: 'text',
-          text: 'บันทึกรายการสำเร็จ',
+          text: headerTitle,
           weight: 'bold',
           size: 'lg',
           color: '#FFFFFF',

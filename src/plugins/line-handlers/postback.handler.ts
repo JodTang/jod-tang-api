@@ -1,10 +1,11 @@
 import type { User } from '../../db/schema.ts'
 import { definePlugin } from '../../utils/factories.ts'
-import { type PostbackEvent, ReplyTextMessage } from '../../utils/line-helper.ts'
+import { type PostbackEvent, ReplyFlexMessage, ReplyTextMessage } from '../../utils/line-helper.ts'
 import {
   canAssignCategoryToTransaction,
   parseTransactionCategoryPostbackData,
 } from '../../utils/transaction-category-postback.ts'
+import { buildTransactionResultFlexMessage } from '../../utils/transaction-result-flex-message.ts'
 
 declare module 'fastify' {
   interface FastifyInstance {
@@ -49,8 +50,20 @@ const plugin = definePlugin(
         return
       }
 
-      await app.transactionRepository.updateCategory(transaction.id, user.id, category.id)
-      await reply.execute(`อัปเดตหมวดหมู่เป็น ${category.name} เรียบร้อยแล้ว`)
+      const updatedTransaction = await app.transactionRepository.updateCategory(
+        transaction.id,
+        user.id,
+        category.id,
+      )
+
+      const replyFlex = new ReplyFlexMessage(app, event.replyToken)
+      await replyFlex.execute(
+        buildTransactionResultFlexMessage(updatedTransaction, {
+          altText: `อัปเดตหมวดหมู่${updatedTransaction.type === 'expense' ? 'รายจ่าย' : 'รายรับ'} ${Number(updatedTransaction.amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} บาท`,
+          category,
+          headerTitle: 'อัปเดตหมวดหมู่แล้ว',
+        }),
+      )
     }
 
     app.decorate('postbackHandler', handlePostback)
