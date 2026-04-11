@@ -20,6 +20,12 @@ export class InviteCodeRepository {
     return (await db.insert(inviteCodesTable).values(inviteCode).returning())[0]
   }
 
+  async findByCode(code: string) {
+    return db.query.inviteCodesTable.findFirst({
+      where: { code },
+    })
+  }
+
   async findAvailable(code: string) {
     return db.query.inviteCodesTable.findFirst({
       where: { code, RAW: (t) => gt(t.maxUses, t.usedCount) },
