@@ -1,5 +1,6 @@
 # Logs
 logs
+logs/mock-users/
 *.log
 npm-debug.log*
 yarn-debug.log*
