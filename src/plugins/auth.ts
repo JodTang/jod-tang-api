@@ -1,6 +1,6 @@
 import { createSigner, createVerifier, TokenError } from 'fast-jwt'
 import type { FastifyReply, FastifyRequest } from 'fastify'
-import type { User } from '../db/schema.ts'
+import type { User, UserRole } from '../db/schema.ts'
 import { definePlugin } from '../utils/factories.ts'
 
 const kUser = Symbol('user:context')
@@ -28,6 +28,7 @@ declare module 'fastify' {
   interface FastifyInstance {
     accessTokenCookieName: string
     authenticate: (request: FastifyRequest) => Promise<void>
+    authorizeRoles: (...roles: UserRole[]) => (request: FastifyRequest) => Promise<void>
     clearAccessTokenCookie: (reply: FastifyReply) => void
     setAccessTokenCookie: (reply: FastifyReply, token: string) => void
     signAccessToken: (payload: AuthTokenPayload) => string
@@ -150,6 +151,15 @@ const plugin = definePlugin(
       request[kUser] = user
     }
 
+    function authorizeRoles(...roles: UserRole[]) {
+      return async function ensureRole(request: FastifyRequest) {
+        const user = request.getUser()
+        if (!roles.includes(user.role)) {
+          throw app.httpErrors.forbidden('Insufficient permissions')
+        }
+      }
+    }
+
     async function verifyLineIdToken(idToken: string) {
       const response = await fetch(new URL('/oauth2/v2.1/verify', config.line.endpoint), {
         method: 'POST',
@@ -172,6 +182,7 @@ const plugin = definePlugin(
 
     app.decorate('accessTokenCookieName', accessTokenCookieName)
     app.decorate('authenticate', authenticate)
+    app.decorate('authorizeRoles', authorizeRoles)
     app.decorate('clearAccessTokenCookie', clearAccessTokenCookie)
     app.decorate('setAccessTokenCookie', setAccessTokenCookie)
     app.decorate('signAccessToken', signAccessToken)

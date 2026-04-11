@@ -14,6 +14,14 @@ const generateGeminiResponseSchema = Type.Object({
   text: Type.String(),
 })
 
+const updateGeminiModelBodySchema = Type.Object({
+  model: Type.String({ minLength: 1, maxLength: 255 }),
+})
+
+const geminiModelResponseSchema = Type.Object({
+  model: Type.String(),
+})
+
 const route: TypedRoutePlugin = async (app) => {
   app.post(
     '/gemini/generate',
@@ -23,6 +31,7 @@ const route: TypedRoutePlugin = async (app) => {
         body: generateGeminiBodySchema,
         response: {
           200: generateGeminiResponseSchema,
+          401: { $ref: 'responses#/properties/unauthorized', description: 'Unauthorized' },
         },
       },
       preHandler: app.authenticate,
@@ -34,6 +43,36 @@ const route: TypedRoutePlugin = async (app) => {
         temperature: request.body.temperature,
         maxOutputTokens: request.body.maxOutputTokens,
       })
+    },
+  )
+
+  app.patch(
+    '/gemini/model',
+    {
+      schema: {
+        tags: ['gemini'],
+        summary: 'Update Gemini model',
+        description: 'Update the application-wide default Gemini model',
+        body: updateGeminiModelBodySchema,
+        response: {
+          200: geminiModelResponseSchema,
+          401: { $ref: 'responses#/properties/unauthorized', description: 'Unauthorized' },
+          403: { $ref: 'responses#/properties/forbidden', description: 'Forbidden' },
+        },
+      },
+      preHandler: [app.authenticate, app.authorizeRoles('owner')],
+    },
+    async (request) => {
+      const model = request.body.model.trim()
+      if (!model) {
+        throw app.httpErrors.badRequest('Gemini model is required')
+      }
+
+      const setting = await app.appSettingsRepository.setGeminiModel(model)
+
+      return {
+        model: setting.value,
+      }
     },
   )
 }

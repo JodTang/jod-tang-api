@@ -29,6 +29,8 @@ const route: TypedRoutePlugin = async (app) => {
     {
       schema: {
         tags: ['auth'],
+        summary: 'LINE OAuth callback',
+        description: 'Exchange LINE ID token for access token and user info',
         body: lineAuthBodySchema,
         response: {
           200: authSuccessSchema,
@@ -78,8 +80,11 @@ const route: TypedRoutePlugin = async (app) => {
     {
       schema: {
         tags: ['auth'],
+        summary: 'Get current user',
+        description: 'Get the authenticated user information',
         response: {
           200: meResponseSchema,
+          401: { $ref: 'responses#/properties/unauthorized', description: 'Unauthorized' },
         },
       },
       preHandler: app.authenticate,
@@ -103,6 +108,8 @@ const route: TypedRoutePlugin = async (app) => {
     {
       schema: {
         tags: ['auth'],
+        summary: 'Logout',
+        description: 'Logout and clear access token cookie',
         response: {
           204: Type.Null(),
         },
