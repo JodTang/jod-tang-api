@@ -61,6 +61,7 @@ export const usersTable = pgTable(
       onDelete: 'set null',
     }),
     displayName: varchar('display_name').notNull(),
+    pictureUrl: varchar('picture_url'),
     status: userStatusEnum('status').notNull().default('pending'),
     role: userRoleEnum('role').notNull().default('user'),
     activatedAt: msTimestamp('activated_at'),

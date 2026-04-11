@@ -32,7 +32,7 @@ export class UserRepository {
     })
   }
 
-  async updateProfile(id: string, profile: Pick<NewUser, 'displayName'>) {
+  async updateProfile(id: string, profile: Pick<NewUser, 'displayName' | 'pictureUrl'>) {
     return (await db.update(usersTable).set(profile).where(eq(usersTable.id, id)).returning())[0]
   }
 

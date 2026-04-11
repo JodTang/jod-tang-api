@@ -60,6 +60,17 @@ const route: TypedRoutePlugin = async (app) => {
         lineUserId,
         status: 'pending',
         displayName: profile.displayName || '',
+        pictureUrl: profile.pictureUrl || null,
+      })
+
+      return user
+    }
+
+    if (!user.pictureUrl) {
+      const profile = await line.client.getProfile(lineUserId)
+      user = await userRepository.updateProfile(user.id, {
+        displayName: profile.displayName || user.displayName,
+        pictureUrl: profile.pictureUrl || null,
       })
     }
 

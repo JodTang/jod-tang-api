@@ -21,6 +21,7 @@ const authUserSchema = Type.Object({
   id: Type.String(),
   lineUserId: Type.String(),
   displayName: Type.String(),
+  pictureUrl: Type.Union([Type.String(), Type.Null()]),
   role: Type.Enum(['user', 'admin', 'owner']),
   status: Type.Enum(['pending', 'active', 'banned']),
 })
@@ -100,6 +101,7 @@ const route: TypedRoutePlugin = async (app) => {
           id: user.id,
           lineUserId: user.lineUserId,
           displayName: user.displayName,
+          pictureUrl: user.pictureUrl,
           role: user.role,
           status: user.status,
         },
@@ -159,6 +161,7 @@ const route: TypedRoutePlugin = async (app) => {
           id: authRecord.user.id,
           lineUserId: authRecord.user.lineUserId,
           displayName: authRecord.user.displayName,
+          pictureUrl: authRecord.user.pictureUrl,
           role: authRecord.user.role,
           status: authRecord.user.status,
         },
@@ -193,11 +196,16 @@ const route: TypedRoutePlugin = async (app) => {
         user = await app.userRepository.create({
           lineUserId: verified.sub,
           displayName: verified.name || 'LINE User',
+          pictureUrl: verified.picture || null,
           status: 'pending',
         })
-      } else if (verified.name && user.displayName !== verified.name) {
+      } else if (
+        (verified.name && user.displayName !== verified.name) ||
+        user.pictureUrl !== (verified.picture || null)
+      ) {
         user = await app.userRepository.updateProfile(user.id, {
-          displayName: verified.name,
+          displayName: verified.name || user.displayName,
+          pictureUrl: verified.picture || null,
         })
       }
 
@@ -215,6 +223,7 @@ const route: TypedRoutePlugin = async (app) => {
           id: user.id,
           lineUserId: user.lineUserId,
           displayName: user.displayName,
+          pictureUrl: user.pictureUrl,
           role: user.role,
           status: user.status,
         },
@@ -245,6 +254,7 @@ const route: TypedRoutePlugin = async (app) => {
           id: user.id,
           lineUserId: user.lineUserId,
           displayName: user.displayName,
+          pictureUrl: user.pictureUrl,
           role: user.role,
           status: user.status,
         },
