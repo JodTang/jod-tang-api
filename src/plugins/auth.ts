@@ -1,6 +1,9 @@
 import { createSigner, createVerifier, TokenError } from 'fast-jwt'
+import type { FastifyReply, FastifyRequest } from 'fastify'
 import type { User } from '../db/schema.ts'
 import { definePlugin } from '../utils/factories.ts'
+
+const kUser = Symbol('user:context')
 
 const accessTokenCookieName = 'access_token'
 const accessTokenIssuer = 'jod-tang-api'
@@ -24,9 +27,9 @@ interface VerifyLineIdTokenResult {
 declare module 'fastify' {
   interface FastifyInstance {
     accessTokenCookieName: string
-    authenticate: (request: import('fastify').FastifyRequest) => Promise<void>
-    clearAccessTokenCookie: (reply: import('fastify').FastifyReply) => void
-    setAccessTokenCookie: (reply: import('fastify').FastifyReply, token: string) => void
+    authenticate: (request: FastifyRequest) => Promise<void>
+    clearAccessTokenCookie: (reply: FastifyReply) => void
+    setAccessTokenCookie: (reply: FastifyReply, token: string) => void
     signAccessToken: (payload: AuthTokenPayload) => string
     verifyAccessToken: (token: string) => AuthTokenPayload & {
       aud?: string | string[]
@@ -39,7 +42,8 @@ declare module 'fastify' {
   }
 
   interface FastifyRequest {
-    authUser: User | null
+    [kUser]: User | null
+    getUser(): User
   }
 }
 
@@ -89,7 +93,7 @@ const plugin = definePlugin(
       allowedIss: accessTokenIssuer,
     })
 
-    function getTokenFromRequest(request: import('fastify').FastifyRequest) {
+    function getTokenFromRequest(request: FastifyRequest) {
       const authorization = request.headers.authorization
       if (authorization?.startsWith('Bearer ')) {
         return authorization.slice('Bearer '.length).trim()
@@ -101,7 +105,7 @@ const plugin = definePlugin(
 
     const accessTokenCookieMaxAgeMs = parseDurationMs(config.jwt.accessTokenTTL)
 
-    function setAccessTokenCookie(reply: import('fastify').FastifyReply, token: string) {
+    function setAccessTokenCookie(reply: FastifyReply, token: string) {
       reply.setCookie(accessTokenCookieName, token, {
         path: '/',
         httpOnly: true,
@@ -113,7 +117,7 @@ const plugin = definePlugin(
       })
     }
 
-    function clearAccessTokenCookie(reply: import('fastify').FastifyReply) {
+    function clearAccessTokenCookie(reply: FastifyReply) {
       reply.clearCookie(accessTokenCookieName, {
         path: '/',
         sameSite: 'lax',
@@ -121,7 +125,7 @@ const plugin = definePlugin(
       })
     }
 
-    async function authenticate(request: import('fastify').FastifyRequest) {
+    async function authenticate(request: FastifyRequest) {
       const token = getTokenFromRequest(request)
       if (!token) {
         throw app.httpErrors.unauthorized('Missing access token')
@@ -143,7 +147,7 @@ const plugin = definePlugin(
         throw app.httpErrors.unauthorized('User not found')
       }
 
-      request.authUser = user
+      request[kUser] = user
     }
 
     async function verifyLineIdToken(idToken: string) {
@@ -173,7 +177,14 @@ const plugin = definePlugin(
     app.decorate('signAccessToken', signAccessToken)
     app.decorate('verifyAccessToken', verifyAccessToken)
     app.decorate('verifyLineIdToken', verifyLineIdToken)
-    app.decorateRequest('authUser', null)
+    app.decorateRequest(kUser, null)
+
+    app.decorateRequest('getUser', function (this: FastifyRequest) {
+      if (!this[kUser]) {
+        throw app.httpErrors.unauthorized('Not authenticated')
+      }
+      return this[kUser]
+    })
   },
 )
 

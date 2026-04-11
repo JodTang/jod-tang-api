@@ -616,7 +616,7 @@
 
       const query = new URLSearchParams(window.location.search);
       const metaLiffId = document.querySelector('meta[name="liff-id"]')?.content?.trim();
-      const liffId = query.get("liffId") || query.get("LIFF_ID") || metaLiffId || "2009758510-FxiGnNMR";
+      const liffId = "2009758510-FxiGnNMR"
       const authBaseUrl = "/api/v1/auth";
 
       const buttons = {

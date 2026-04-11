@@ -85,7 +85,7 @@ const route: TypedRoutePlugin = async (app) => {
       preHandler: app.authenticate,
     },
     async (request) => {
-      const user = request.authUser!
+      const user = request.getUser()
       return {
         user: {
           id: user.id,
