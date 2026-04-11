@@ -14,7 +14,12 @@ const route: TypedRoutePlugin = async (app) => {
 
   app.post<{ Body: webhook.CallbackRequest }>(
     '/webhook/line',
-    { config: { lineWebhook: true } },
+    {
+      config: {
+        auth: false,
+        lineWebhook: true,
+      },
+    },
     async (request, reply) => {
       reply.code(200).send('OK')
 

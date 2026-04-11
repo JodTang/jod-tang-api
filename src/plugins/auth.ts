@@ -46,6 +46,11 @@ declare module 'fastify' {
     [kUser]: User | null
     getUser(): User
   }
+
+  interface FastifyContextConfig {
+    auth?: boolean
+    roles?: UserRole[]
+  }
 }
 
 function parseDurationMs(value: string) {

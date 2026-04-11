@@ -185,7 +185,10 @@ const route: TypedRoutePlugin = async (app) => {
           403: { $ref: 'responses#/properties/forbidden', description: 'Forbidden' },
         },
       },
-      preHandler: [app.authenticate, app.authorizeRoles('admin', 'owner')],
+      config: {
+        auth: true,
+        roles: ['admin', 'owner'],
+      },
     },
     async (request) => {
       const filters = {
@@ -228,7 +231,10 @@ const route: TypedRoutePlugin = async (app) => {
           409: { $ref: 'responses#/properties/conflict', description: 'Conflict' },
         },
       },
-      preHandler: [app.authenticate, app.authorizeRoles('admin', 'owner')],
+      config: {
+        auth: true,
+        roles: ['admin', 'owner'],
+      },
     },
     async (request, reply) => {
       const requestedCode = request.body.code?.trim().toUpperCase()
@@ -279,7 +285,10 @@ const route: TypedRoutePlugin = async (app) => {
           409: { $ref: 'responses#/properties/conflict', description: 'Conflict' },
         },
       },
-      preHandler: [app.authenticate, app.authorizeRoles('admin', 'owner')],
+      config: {
+        auth: true,
+        roles: ['admin', 'owner'],
+      },
     },
     async (request) => {
       const existingInviteCode = await app.inviteCodeRepository.findById(request.params.id)
@@ -351,7 +360,10 @@ const route: TypedRoutePlugin = async (app) => {
           404: { $ref: 'responses#/properties/notFound', description: 'Not Found' },
         },
       },
-      preHandler: [app.authenticate, app.authorizeRoles('admin', 'owner')],
+      config: {
+        auth: true,
+        roles: ['admin', 'owner'],
+      },
     },
     async (request, reply) => {
       const inviteCode = await app.inviteCodeRepository.deleteById(request.params.id)

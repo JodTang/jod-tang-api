@@ -35,7 +35,9 @@ const route: TypedRoutePlugin = async (app) => {
           401: { $ref: 'responses#/properties/unauthorized', description: 'Unauthorized' },
         },
       },
-      preHandler: app.authenticate,
+      config: {
+        auth: true,
+      },
     },
     async (request) => {
       return app.gemini.generateText(request.body.prompt, {
@@ -62,7 +64,10 @@ const route: TypedRoutePlugin = async (app) => {
           403: { $ref: 'responses#/properties/forbidden', description: 'Forbidden' },
         },
       },
-      preHandler: [app.authenticate, app.authorizeRoles('owner')],
+      config: {
+        auth: true,
+        roles: ['owner'],
+      },
     },
     async (request) => {
       const model = request.body.model.trim()

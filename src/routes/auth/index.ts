@@ -21,8 +21,8 @@ const authUserSchema = Type.Object({
   id: Type.String(),
   lineUserId: Type.String(),
   displayName: Type.String(),
-  role: Type.Union([Type.Literal('user'), Type.Literal('admin'), Type.Literal('owner')]),
-  status: Type.Union([Type.Literal('pending'), Type.Literal('active'), Type.Literal('banned')]),
+  role: Type.Enum(['user', 'admin', 'owner']),
+  status: Type.Enum(['pending', 'active', 'banned']),
 })
 
 const authSuccessSchema = Type.Object({
@@ -60,7 +60,10 @@ const route: TypedRoutePlugin = async (app) => {
           409: { $ref: 'responses#/properties/conflict', description: 'Conflict' },
         },
       },
-      preHandler: [app.authenticate, app.authorizeRoles('owner')],
+      config: {
+        auth: true,
+        roles: ['owner'],
+      },
     },
     async (request, reply) => {
       const username = request.body.username.trim()
@@ -121,6 +124,9 @@ const route: TypedRoutePlugin = async (app) => {
           401: { $ref: 'responses#/properties/unauthorized', description: 'Unauthorized' },
         },
       },
+      config: {
+        auth: false,
+      },
     },
     async (request, reply) => {
       const username = request.body.username.trim()
@@ -174,6 +180,9 @@ const route: TypedRoutePlugin = async (app) => {
           401: { $ref: 'responses#/properties/unauthorized', description: 'Unauthorized' },
         },
       },
+      config: {
+        auth: false,
+      },
     },
     async (request, reply) => {
       const verified = await app.verifyLineIdToken(request.body.idToken)
@@ -225,7 +234,9 @@ const route: TypedRoutePlugin = async (app) => {
           401: { $ref: 'responses#/properties/unauthorized', description: 'Unauthorized' },
         },
       },
-      preHandler: app.authenticate,
+      config: {
+        auth: true,
+      },
     },
     async (request) => {
       const user = request.getUser()
@@ -251,6 +262,9 @@ const route: TypedRoutePlugin = async (app) => {
         response: {
           204: Type.Null(),
         },
+      },
+      config: {
+        auth: false,
       },
     },
     async (_request, reply) => {
