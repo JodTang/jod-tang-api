@@ -1,8 +1,14 @@
 import Type from 'typebox'
 import type { TypedRoutePlugin } from '../../utils/factories.ts'
+import { verifyPassword } from '../../utils/password.ts'
 
 const lineAuthBodySchema = Type.Object({
   idToken: Type.String({ minLength: 1 }),
+})
+
+const localAuthBodySchema = Type.Object({
+  username: Type.String({ minLength: 1, maxLength: 255 }),
+  password: Type.String({ minLength: 1, maxLength: 255 }),
 })
 
 const authUserSchema = Type.Object({
@@ -25,6 +31,64 @@ const meResponseSchema = Type.Object({
 
 const route: TypedRoutePlugin = async (app) => {
   app.post(
+    '/auth/local',
+    {
+      schema: {
+        tags: ['auth'],
+        summary: 'Local owner login',
+        description: 'Login with local username and password for owner access',
+        body: localAuthBodySchema,
+        response: {
+          200: authSuccessSchema,
+          400: { $ref: 'responses#/properties/badRequest', description: 'Bad Request' },
+          401: { $ref: 'responses#/properties/unauthorized', description: 'Unauthorized' },
+          403: { $ref: 'responses#/properties/forbidden', description: 'Forbidden' },
+        },
+      },
+    },
+    async (request, reply) => {
+      const username = request.body.username.trim()
+      const password = request.body.password
+      if (!username) {
+        throw app.httpErrors.badRequest('Username is required')
+      }
+
+      const authRecord = await app.localAuthCredentialRepository.findUserByUsername(username)
+      if (!authRecord) {
+        throw app.httpErrors.unauthorized('Invalid username or password')
+      }
+
+      if (authRecord.user.role !== 'owner') {
+        throw app.httpErrors.forbidden('Local login is only available for owner')
+      }
+
+      const isPasswordValid = await verifyPassword(password, authRecord.credential.passwordHash)
+      if (!isPasswordValid) {
+        throw app.httpErrors.unauthorized('Invalid username or password')
+      }
+
+      const accessToken = app.signAccessToken({
+        userId: authRecord.user.id,
+        lineUserId: authRecord.user.lineUserId,
+      })
+
+      app.setAccessTokenCookie(reply, accessToken)
+
+      return {
+        accessToken,
+        tokenType: 'Bearer' as const,
+        user: {
+          id: authRecord.user.id,
+          lineUserId: authRecord.user.lineUserId,
+          displayName: authRecord.user.displayName,
+          role: authRecord.user.role,
+          status: authRecord.user.status,
+        },
+      }
+    },
+  )
+
+  app.post(
     '/auth/line',
     {
       schema: {
@@ -34,6 +98,8 @@ const route: TypedRoutePlugin = async (app) => {
         body: lineAuthBodySchema,
         response: {
           200: authSuccessSchema,
+          400: { $ref: 'responses#/properties/badRequest', description: 'Bad Request' },
+          401: { $ref: 'responses#/properties/unauthorized', description: 'Unauthorized' },
         },
       },
     },

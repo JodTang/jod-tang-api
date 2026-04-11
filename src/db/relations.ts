@@ -8,6 +8,18 @@ export const relations = defineRelations(schema, (r) => ({
       to: r.inviteCodesTable.id,
       optional: true,
     }),
+    localAuthCredential: r.one.localAuthCredentialsTable({
+      from: r.usersTable.id,
+      to: r.localAuthCredentialsTable.userId,
+      optional: true,
+    }),
+  },
+  localAuthCredentialsTable: {
+    user: r.one.usersTable({
+      from: r.localAuthCredentialsTable.userId,
+      to: r.usersTable.id,
+      optional: false,
+    }),
   },
   categoriesTable: {
     user: r.one.usersTable({

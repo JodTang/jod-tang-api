@@ -76,6 +76,28 @@ export const usersTable = pgTable(
   ],
 )
 
+export const localAuthCredentialsTable = pgTable(
+  'local_auth_credentials',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: uuid('user_id')
+      .notNull()
+      .unique()
+      .references(() => usersTable.id, { onDelete: 'cascade' }),
+    username: varchar('username', { length: 255 }).notNull().unique(),
+    passwordHash: text('password_hash').notNull(),
+    createdAt: msTimestamp('created_at').notNull().defaultNow(),
+    updatedAt: msTimestamp('updated_at')
+      .notNull()
+      .defaultNow()
+      .$onUpdate(() => new Date()),
+  },
+  (table) => [
+    index('local_auth_credentials_user_id_idx').on(table.userId),
+    index('local_auth_credentials_username_idx').on(table.username),
+  ],
+)
+
 export const categoriesTable = pgTable(
   'categories',
   {
@@ -132,6 +154,8 @@ export type InviteCode = typeof inviteCodesTable.$inferSelect
 export type NewInviteCode = typeof inviteCodesTable.$inferInsert
 export type AppSetting = typeof appSettingsTable.$inferSelect
 export type NewAppSetting = typeof appSettingsTable.$inferInsert
+export type LocalAuthCredential = typeof localAuthCredentialsTable.$inferSelect
+export type NewLocalAuthCredential = typeof localAuthCredentialsTable.$inferInsert
 export type User = typeof usersTable.$inferSelect
 export type NewUser = typeof usersTable.$inferInsert
 export type Category = typeof categoriesTable.$inferSelect

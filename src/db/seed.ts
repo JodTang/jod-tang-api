@@ -1,8 +1,14 @@
 import { eq } from 'drizzle-orm'
 import type { FastifyInstance } from 'fastify'
 import type { IConfig } from '../config/index.ts'
+import { hashPassword } from '../utils/password.ts'
 import { db } from './index.ts'
-import { appSettingsTable, inviteCodesTable, usersTable } from './schema.ts'
+import {
+  appSettingsTable,
+  inviteCodesTable,
+  localAuthCredentialsTable,
+  usersTable,
+} from './schema.ts'
 
 export async function seed(app: FastifyInstance, config: IConfig) {
   app.log.info('Seeding database...')
@@ -72,6 +78,53 @@ export async function seed(app: FastifyInstance, config: IConfig) {
         'Bootstrap owner created from config',
       )
     }
+  }
+
+  const bootstrapOwnerUsername = config.localAuth.bootstrapOwnerUsername?.trim()
+  const bootstrapOwnerPassword = config.localAuth.bootstrapOwnerPassword
+
+  if (
+    (bootstrapOwnerUsername && !bootstrapOwnerPassword) ||
+    (!bootstrapOwnerUsername && bootstrapOwnerPassword)
+  ) {
+    app.log.warn(
+      'Skipping bootstrap owner local auth because BOOTSTRAP_OWNER_USERNAME and BOOTSTRAP_OWNER_PASSWORD must both be set',
+    )
+  } else if (bootstrapOwnerUsername && bootstrapOwnerPassword) {
+    const owner = await db.query.usersTable.findFirst({
+      where: { role: 'owner' },
+    })
+
+    if (!owner) {
+      app.log.warn(
+        { username: bootstrapOwnerUsername },
+        'Skipping bootstrap owner local auth because no owner user exists',
+      )
+      app.log.info('Database seeding completed')
+      return
+    }
+
+    const passwordHash = await hashPassword(bootstrapOwnerPassword)
+
+    await db
+      .insert(localAuthCredentialsTable)
+      .values({
+        userId: owner.id,
+        username: bootstrapOwnerUsername,
+        passwordHash,
+      })
+      .onConflictDoUpdate({
+        target: localAuthCredentialsTable.userId,
+        set: {
+          username: bootstrapOwnerUsername,
+          passwordHash,
+        },
+      })
+
+    app.log.info(
+      { username: bootstrapOwnerUsername, userId: owner.id },
+      'Bootstrap owner local auth configured',
+    )
   }
 
   app.log.info('Database seeding completed')

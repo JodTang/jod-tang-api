@@ -31,6 +31,7 @@ const route: TypedRoutePlugin = async (app) => {
         body: generateGeminiBodySchema,
         response: {
           200: generateGeminiResponseSchema,
+          400: { $ref: 'responses#/properties/badRequest', description: 'Bad Request' },
           401: { $ref: 'responses#/properties/unauthorized', description: 'Unauthorized' },
         },
       },
@@ -56,6 +57,7 @@ const route: TypedRoutePlugin = async (app) => {
         body: updateGeminiModelBodySchema,
         response: {
           200: geminiModelResponseSchema,
+          400: { $ref: 'responses#/properties/badRequest', description: 'Bad Request' },
           401: { $ref: 'responses#/properties/unauthorized', description: 'Unauthorized' },
           403: { $ref: 'responses#/properties/forbidden', description: 'Forbidden' },
         },
