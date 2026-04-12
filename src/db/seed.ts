@@ -2,9 +2,11 @@ import { eq } from 'drizzle-orm'
 import type { FastifyInstance } from 'fastify'
 import type { IConfig } from '../config/index.ts'
 import { hashPassword } from '../utils/password.ts'
+import { buildDefaultCategoriesForUser } from './default-categories.ts'
 import { db } from './index.ts'
 import {
   appSettingsTable,
+  categoriesTable,
   inviteCodesTable,
   localAuthCredentialsTable,
   usersTable,
@@ -36,6 +38,10 @@ export async function seed(app: FastifyInstance, config: IConfig) {
     {
       name: 'bootstrap-owner',
       run: ensureBootstrapOwner,
+    },
+    {
+      name: 'bootstrap-owner-default-categories',
+      run: ensureBootstrapOwnerDefaultCategories,
     },
     {
       name: 'bootstrap-owner-local-auth',
@@ -122,6 +128,41 @@ async function ensureBootstrapOwner({ app, config }: SeedContext) {
       )
     }
   }
+}
+
+async function ensureBootstrapOwnerDefaultCategories({ app }: SeedContext) {
+  const owner = await db.query.usersTable.findFirst({
+    where: { role: 'owner' },
+  })
+
+  if (!owner) {
+    app.log.debug('Skipping bootstrap owner default categories because no owner user exists')
+    return
+  }
+
+  const existingCategories = await db.query.categoriesTable.findMany({
+    where: { userId: owner.id },
+  })
+
+  const existingCategoryKeys = new Set(
+    existingCategories.map((category) => `${category.type}:${category.name}`),
+  )
+
+  const missingDefaultCategories = buildDefaultCategoriesForUser(owner.id).filter(
+    (category) => !existingCategoryKeys.has(`${category.type}:${category.name}`),
+  )
+
+  if (missingDefaultCategories.length === 0) {
+    app.log.debug({ userId: owner.id }, 'Bootstrap owner already has default categories')
+    return
+  }
+
+  await db.insert(categoriesTable).values(missingDefaultCategories)
+
+  app.log.info(
+    { userId: owner.id, insertedCount: missingDefaultCategories.length },
+    'Bootstrap owner default categories ensured',
+  )
 }
 
 async function ensureBootstrapOwnerLocalAuth({ app, config }: SeedContext) {

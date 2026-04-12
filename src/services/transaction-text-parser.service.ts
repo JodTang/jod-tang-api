@@ -108,7 +108,7 @@ export class TransactionTextParserService {
         responseJsonSchema: geminiTransactionResponseSchema,
         temperature: 0,
         maxOutputTokens: 900,
-        timeoutMs: 15000,
+        timeoutMs: 30000,
       },
     )
 
