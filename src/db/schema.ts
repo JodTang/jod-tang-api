@@ -143,9 +143,21 @@ export const transactionsTable = pgTable(
       .$onUpdate(() => new Date()),
   },
   (table) => [
-    index('transactions_user_date_idx').on(table.userId, table.transactedAt),
+    index('transactions_user_transacted_created_id_idx').on(
+      table.userId,
+      table.transactedAt,
+      table.createdAt,
+      table.id,
+    ),
+    index('transactions_user_created_id_idx').on(table.userId, table.createdAt, table.id),
     index('transactions_user_category_idx').on(table.userId, table.categoryId),
-    index('transactions_user_type_date_idx').on(table.userId, table.type, table.transactedAt),
+    index('transactions_user_type_transacted_created_id_idx').on(
+      table.userId,
+      table.type,
+      table.transactedAt,
+      table.createdAt,
+      table.id,
+    ),
   ],
 )
 

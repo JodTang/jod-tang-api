@@ -110,12 +110,17 @@ export class TransactionRepository {
       .limit(params.pageSize)
       .offset((params.page - 1) * params.pageSize)
 
-    const [{ totalItems }] = await db
-      .select({
-        totalItems: sql<number>`count(*)::int`,
-      })
-      .from(transactionsTable)
-      .where(where)
+    const totalItems =
+      params.page === 1 && items.length < params.pageSize
+        ? items.length
+        : (
+            await db
+              .select({
+                totalItems: sql<number>`count(*)::int`,
+              })
+              .from(transactionsTable)
+              .where(where)
+          )[0].totalItems
 
     return {
       items,
@@ -218,19 +223,30 @@ export class TransactionRepository {
 
     switch (sortBy) {
       case 'amount':
-        return [direction(transactionsTable.amount), desc(transactionsTable.createdAt)] as const
+        return [
+          direction(transactionsTable.amount),
+          direction(transactionsTable.transactedAt),
+          direction(transactionsTable.createdAt),
+          direction(transactionsTable.id),
+        ] as const
       case 'createdAt':
         return [
           direction(transactionsTable.createdAt),
-          desc(transactionsTable.transactedAt),
+          direction(transactionsTable.transactedAt),
+          direction(transactionsTable.id),
         ] as const
       case 'transactedAt':
         return [
           direction(transactionsTable.transactedAt),
-          desc(transactionsTable.createdAt),
+          direction(transactionsTable.createdAt),
+          direction(transactionsTable.id),
         ] as const
       default:
-        return [desc(transactionsTable.transactedAt), desc(transactionsTable.createdAt)] as const
+        return [
+          desc(transactionsTable.transactedAt),
+          desc(transactionsTable.createdAt),
+          desc(transactionsTable.id),
+        ] as const
     }
   }
 }
