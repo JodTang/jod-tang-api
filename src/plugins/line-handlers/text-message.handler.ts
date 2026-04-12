@@ -143,7 +143,7 @@ const plugin = definePlugin(
           { err, text, userId: user.id },
           'Failed to parse transaction candidate from text message',
         )
-        await reply.execute(buildTransactionInputHintMessages())
+        await reply.execute('เกิดข้อผิดพลาดชั่วคราว กรุณาลองใหม่อีกครั้ง')
       }
     }
 
