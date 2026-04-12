@@ -7,6 +7,7 @@ export interface GeminiGenerateTextOptions {
   systemInstruction?: string
   temperature?: number
   maxOutputTokens?: number
+  timeoutMs?: number
 }
 
 export interface GeminiGenerateTextResult {
@@ -60,6 +61,9 @@ export class GeminiService {
       model,
       contents: prompt,
       config: {
+        ...(typeof options.timeoutMs === 'number'
+          ? { httpOptions: { timeout: options.timeoutMs } }
+          : {}),
         ...(options.systemInstruction ? { systemInstruction: options.systemInstruction } : {}),
         ...(typeof options.temperature === 'number' ? { temperature: options.temperature } : {}),
         ...(typeof options.maxOutputTokens === 'number'
@@ -99,6 +103,9 @@ export class GeminiService {
       config: {
         responseMimeType: 'application/json',
         responseJsonSchema: options.responseJsonSchema,
+        ...(typeof options.timeoutMs === 'number'
+          ? { httpOptions: { timeout: options.timeoutMs } }
+          : {}),
         ...(options.systemInstruction ? { systemInstruction: options.systemInstruction } : {}),
         ...(typeof options.temperature === 'number' ? { temperature: options.temperature } : {}),
         ...(typeof options.maxOutputTokens === 'number'
